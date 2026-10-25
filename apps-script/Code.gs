@@ -1,0 +1,151 @@
+/**
+ * The Nest Log — backend.
+ * Lives in the Apps Script of the Google Sheet "Nest Log data" in Anirban's Drive.
+ * Deploy: Deploy > New deployment > Web app, Execute as: Me, Who has access: Anyone.
+ * Script properties (Project Settings > Script properties): PASSCODE (shared by both), OWNER_PIN (Anirban only).
+ */
+
+const TABS = {
+  Entries: ["id", "date", "who", "mood", "fight", "trigger", "felt", "needed", "change", "pauseUsed",
+            "appreciation", "other", "context", "contextApp", "shotFile", "createdAt"],
+  Feedback: ["id", "who", "text", "status", "reply", "createdAt"],
+  State: ["key", "json", "updatedAt"]
+};
+const WHO = ["Bindu", "Anirban"];
+const SHOT_FOLDER_ID = "15mOeSSfHazt_4G7Qx49N_aXTPy9XZumH"; // Drive folder "Nest Log screenshots"
+const STARTER_RULES = [
+  "We don't call each other names or insult each other, even when angry.",
+  "We stick to today's issue and don't bring up old fights.",
+  "We don't argue over text or call. Serious talks happen face to face.",
+  "Either of us can say the pause word. We take 20–30 minutes apart, then the one who paused restarts the talk.",
+  "We don't go silent on each other for more than a few hours without saying when we'll talk.",
+  "When we talk it through, each person speaks without interruption and the other repeats back what they heard."
+];
+const TEXT_FIELDS = ["trigger", "felt", "needed", "change", "appreciation", "other"];
+
+/** Run once from the editor: creates the tabs and default state. Safe to re-run. */
+function setup() {
+  const ss = SpreadsheetApp.getActive();
+  Object.keys(TABS).forEach(name => {
+    let sh = ss.getSheetByName(name);
+    if (!sh) sh = ss.insertSheet(name);
+    if (sh.getLastRow() === 0) { sh.appendRow(TABS[name]); sh.setFrozenRows(1); }
+  });
+  ss.getSheetByName("Entries").getRange("B:B").setNumberFormat("@"); // keep dates as plain YYYY-MM-DD text
+  ss.getSheets().forEach(sh => { if (!TABS[sh.getName()] && sh.getLastRow() === 0 && ss.getSheets().length > 3) ss.deleteSheet(sh); });
+  if (!getState_("settings")) setState_("settings", { aiPaused: false, nightlyPaused: false, remindersPaused: false });
+  WHO.forEach(w => { if (!getState_("logstatus_" + w)) setState_("logstatus_" + w, { last: "", remind: true }); });
+  if (!getState_("rules")) setState_("rules", { items: STARTER_RULES.map((t, i) => ({ id: "s" + (i + 1), text: t, source: "starter", added: "2026-10-25" })) });
+}
+
+function doGet() { return json_({ ok: true, app: "nest-log" }); }
+
+function doPost(e) {
+  let req;
+  try { req = JSON.parse(e.postData.contents); } catch (x) { return json_({ error: "bad_request" }); }
+  const props = PropertiesService.getScriptProperties();
+  if (!req.pass || req.pass !== props.getProperty("PASSCODE")) return json_({ error: "wrong_passcode" });
+  const isOwner = !!req.ownerPin && req.ownerPin === props.getProperty("OWNER_PIN");
+  const d = req.data || {};
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    switch (req.action) {
+      case "load": return json_(load_(isOwner));
+      case "addEntry": return json_(addEntry_(d, props));
+      case "setRules": setState_("rules", { items: cleanRules_(d.items) }); return json_({ ok: true });
+      case "addFeedback": return json_(addFeedback_(d));
+      case "setRemind":
+        if (WHO.indexOf(d.who) < 0) return json_({ error: "bad_request" });
+        setState_("logstatus_" + d.who, Object.assign({}, getState_("logstatus_" + d.who) || {}, { remind: !!d.remind }));
+        return json_({ ok: true });
+      case "dismissSuggestion": return json_(dismiss_(d));
+      case "setSetting":
+        if (!isOwner) return json_({ error: "owner_only" });
+        if (["aiPaused", "nightlyPaused", "remindersPaused"].indexOf(d.key) < 0) return json_({ error: "bad_request" });
+        const s = getState_("settings") || {}; s[d.key] = !!d.value; setState_("settings", s);
+        return json_({ ok: true });
+      case "decide":
+        if (!isOwner) return json_({ error: "owner_only" });
+        if (["approved", "rejected"].indexOf(d.status) < 0) return json_({ error: "bad_request" });
+        const p = getState_("proposal");
+        if (!p || p.status !== "pending") return json_({ error: "nothing_pending" });
+        p.status = d.status; p.decidedAt = new Date().toISOString(); setState_("proposal", p);
+        return json_({ ok: true });
+      default: return json_({ error: "unknown_action" });
+    }
+  } finally { lock.releaseLock(); }
+}
+
+function load_(isOwner) {
+  const state = {};
+  rows_("State").forEach(r => { try { state[r.key] = JSON.parse(r.json); } catch (x) {} });
+  const entries = rows_("Entries").slice(-300).reverse().map(r => { const o = Object.assign({}, r); delete o.shotFile; o.shotPending = !!r.shotFile; return o; });
+  return { entries: entries, feedback: rows_("Feedback").slice(-200).reverse(), state: state, isOwner: isOwner };
+}
+
+function addEntry_(d, props) {
+  if (WHO.indexOf(d.who) < 0) return { error: "bad_request" };
+  const mood = Number(d.mood);
+  if (!(mood >= 1 && mood <= 5)) return { error: "bad_request" };
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? d.date : Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd");
+  const e = { id: Utilities.getUuid(), date: date, who: d.who, mood: mood,
+              fight: ["none", "small", "big"].indexOf(d.fight) >= 0 ? d.fight : "none",
+              pauseUsed: ["yes", "no", "na", ""].indexOf(d.pauseUsed) >= 0 ? d.pauseUsed : "",
+              context: "", contextApp: "", shotFile: "", createdAt: new Date().toISOString() };
+  TEXT_FIELDS.forEach(f => e[f] = String(d[f] || "").slice(0, 4000));
+  if (d.shot && d.shot.base64) {
+    const blob = Utilities.newBlob(Utilities.base64Decode(d.shot.base64), "image/jpeg", date + "-" + d.who + "-" + e.id.slice(0, 8) + ".jpg");
+    e.shotFile = DriveApp.getFolderById(SHOT_FOLDER_ID).createFile(blob).getId();
+  }
+  SpreadsheetApp.getActive().getSheetByName("Entries").appendRow(TABS.Entries.map(k => e[k]));
+  setState_("logstatus_" + d.who, Object.assign({}, getState_("logstatus_" + d.who) || { remind: true }, { last: date }));
+  return { ok: true, id: e.id };
+}
+
+function addFeedback_(d) {
+  if (WHO.indexOf(d.who) < 0) return { error: "bad_request" };
+  const t = String(d.text || "").trim().slice(0, 2000);
+  if (!t) return { error: "bad_request" };
+  const f = { id: Utilities.getUuid(), who: d.who, text: t, status: "new", reply: "", createdAt: new Date().toISOString() };
+  SpreadsheetApp.getActive().getSheetByName("Feedback").appendRow(TABS.Feedback.map(k => f[k]));
+  return { ok: true };
+}
+
+function dismiss_(d) {
+  const s = getState_("suggestions");
+  if (!s) return { ok: true };
+  s.dismissed = (s.dismissed || []).concat([String(d.key || "")]).slice(-50);
+  setState_("suggestions", s);
+  return { ok: true };
+}
+
+function cleanRules_(items) {
+  return (Array.isArray(items) ? items : []).slice(0, 40).map(r => ({
+    id: String(r.id || Utilities.getUuid()).slice(0, 40), text: String(r.text || "").slice(0, 300),
+    source: ["starter", "manual", "suggested"].indexOf(r.source) >= 0 ? r.source : "manual", added: String(r.added || "").slice(0, 10)
+  })).filter(r => r.text);
+}
+
+// ---- helpers ----
+function rows_(name) {
+  const sh = SpreadsheetApp.getActive().getSheetByName(name);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const v = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues();
+  const h = v[0];
+  return v.slice(1).filter(r => r[0] !== "").map(r => { const o = {}; h.forEach((k, i) => o[k] = r[i] instanceof Date ? r[i].toISOString() : r[i]); return o; });
+}
+function getState_(key) {
+  const sh = SpreadsheetApp.getActive().getSheetByName("State");
+  const v = sh.getDataRange().getValues();
+  for (let i = 1; i < v.length; i++) if (v[i][0] === key) { try { return JSON.parse(v[i][1]); } catch (x) { return null; } }
+  return null;
+}
+function setState_(key, obj) {
+  const sh = SpreadsheetApp.getActive().getSheetByName("State");
+  const v = sh.getDataRange().getValues();
+  const row = [key, JSON.stringify(obj), new Date().toISOString()];
+  for (let i = 1; i < v.length; i++) if (v[i][0] === key) { sh.getRange(i + 1, 1, 1, 3).setValues([row]); return; }
+  sh.appendRow(row);
+}
+function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
