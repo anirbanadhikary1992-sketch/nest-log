@@ -119,6 +119,9 @@ textarea:focus,input[type=text]:focus{border-bottom-color:var(--leaf);outline:no
 .entry{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
 .entry.her{background:color-mix(in srgb, var(--her-soft) 55%, var(--card))}
 .entry.his{background:color-mix(in srgb, var(--his-soft) 55%, var(--card))}
+.entry.framed{border:2px solid var(--line);box-shadow:inset 0 0 0 5px var(--card),inset 0 0 0 6px var(--line);padding:18px;gap:8px}
+.entry.framed p{white-space:pre-wrap}
+.rules .txt p{margin:0}
 .entry .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
 .whoTag{display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px}
 .whoTag.her svg{color:var(--her)} .whoTag.his svg{color:var(--his)}
@@ -144,6 +147,8 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
   <symbol id="leaf" viewBox="0 0 48 48"><path d="M9 41C19 31 27 21 38 7"/><path d="M17 32c-6-1-9-6-8-11 5 1 8 6 8 11zM24 24c6 0 10-4 10-10-6 0-10 4-10 10zM29 17c-5-2-7-7-5-12 5 2 7 7 5 12z"/></symbol>
   <symbol id="mandir" viewBox="0 0 48 48"><path d="M7 43h34M10 43v-4h28v4M14 39V27h20v12M21 39v-6a3 3 0 016 0v6M15 27c0-8 4-14 9-19 5 5 9 11 9 19M24 8V3l6 2-6 2"/></symbol>
   <symbol id="bike" viewBox="0 0 48 48"><circle cx="11" cy="33" r="7"/><circle cx="37" cy="33" r="7"/><path d="M11 33l8-11h11l7 11M19 22l5 11H11M30 22l-3-6h-5M27 16h6"/></symbol>
+  <symbol id="motorbike" viewBox="0 0 48 48"><circle cx="11" cy="32" r="6.5"/><circle cx="37" cy="32" r="6.5"/><path d="M11 32h7l5-8h8l4 8M24 24l-3-7h-4M20 17h-3M30 24l3-9h4l2 3"/><path d="M24 24h-2M29 16l-3 3"/></symbol>
+  <symbol id="food" viewBox="0 0 48 48"><path d="M7 24h34c0 9-7 15-17 15S7 33 7 24z"/><path d="M12 42h24M18 12c-2 2-2 4 0 6M24 9c-2 2-2 4 0 6M30 12c-2 2-2 4 0 6"/></symbol>
   <symbol id="peak" viewBox="0 0 48 48"><path d="M3 41l14-23 8 12 6-8 14 19z"/><path d="M13 25l4 3 4-4"/><circle cx="37" cy="10" r="4"/></symbol>
   <symbol id="camera" viewBox="0 0 48 48"><path d="M8 15h8l3-4h10l3 4h8a2 2 0 012 2v19a2 2 0 01-2 2H8a2 2 0 01-2-2V17a2 2 0 012-2z"/><circle cx="24" cy="26" r="7"/><circle cx="24" cy="26" r="2.5"/></symbol>
   <symbol id="pad" viewBox="0 0 48 48"><path d="M14 17h20c6 0 9 6 10 14 1 5-4 8-8 4l-4-4H16l-4 4c-4 4-9 1-8-4 1-8 4-14 10-14z"/><path d="M14 22v7M10.5 25.5h7"/><circle cx="32" cy="23" r="1.4" fill="currentColor"/><circle cx="36" cy="27" r="1.4" fill="currentColor"/></symbol>
@@ -169,7 +174,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
 
   <div class="doodles" aria-hidden="true">
     <div class="side her"><svg class="d"><use href="#duck"/></svg><svg class="d"><use href="#bird"/></svg><svg class="d"><use href="#cat"/></svg><svg class="d"><use href="#leaf"/></svg><svg class="d"><use href="#mandir"/></svg></div>
-    <div class="side his"><svg class="d"><use href="#bike"/></svg><svg class="d"><use href="#peak"/></svg><svg class="d"><use href="#camera"/></svg><svg class="d"><use href="#pad"/></svg></div>
+    <div class="side his"><svg class="d"><use href="#motorbike"/></svg><svg class="d"><use href="#peak"/></svg><svg class="d"><use href="#camera"/></svg><svg class="d"><use href="#pad"/></svg><svg class="d"><use href="#food"/></svg></div>
   </div>
 
   <!-- PASSCODE GATE -->
@@ -189,6 +194,8 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
     <button class="tab" role="tab" aria-selected="true" data-p="p-today">Today's page</button>
     <button class="tab" role="tab" aria-selected="false" data-p="p-rules">Our rules</button>
     <button class="tab" role="tab" aria-selected="false" data-p="p-hist">The log</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="p-lists">To-dos &amp; shopping</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="p-journal">Our journal</button>
     <button class="tab" role="tab" aria-selected="false" data-p="p-fb">Feedback</button>
   </nav>
 
@@ -199,7 +206,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
         <span class="lbl">Who's writing tonight?</span>
         <div class="who seg" id="who">
           <button type="button" data-v="Bindu"><svg class="d"><use href="#duck"/></svg><span>Bindu</span></button>
-          <button type="button" data-v="Anirban"><svg class="d"><use href="#bike"/></svg><span>Anirban</span></button>
+          <button type="button" data-v="Anirban"><svg class="d"><use href="#motorbike"/></svg><span>Anirban</span></button>
         </div>
         <div class="switch" id="remindWrap" hidden style="margin-top:10px"><input type="checkbox" id="remindMe"><label for="remindMe" style="margin:0;font-weight:500">Email me at 9:15 pm on nights I haven't written</label></div>
       </div>
@@ -266,6 +273,41 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
     <div id="hist" style="display:flex;flex-direction:column;gap:20px"><div class="empty"><svg class="d"><use href="#bird"/></svg>No pages yet. Write tonight's on the first tab.</div></div>
   </section>
 
+  <!-- LISTS (shared by both) -->
+  <section class="panel" id="p-lists" role="tabpanel" hidden>
+    <div class="card">
+      <div><h2>To-dos for both of us</h2><p class="lead">Either of us can add, tick or remove.</p></div>
+      <ul class="rules" id="todoList"></ul>
+      <div class="row"><input type="text" id="todoNew" placeholder="Add a to-do" style="flex:1;min-width:0"><button class="btn small" id="todoAdd">Add</button></div>
+    </div>
+    <div class="card">
+      <div><h2>Shopping list</h2><p class="lead">Add it when you run out. Tick it off at the shop.</p></div>
+      <ul class="rules" id="shopList"></ul>
+      <div class="row"><input type="text" id="shopNew" placeholder="Add an item" style="flex:1;min-width:0"><button class="btn small" id="shopAdd">Add</button></div>
+    </div>
+    <span class="status" id="listStatus"></span>
+  </section>
+
+  <!-- JOURNAL (private to each of us, behind our own password) -->
+  <section class="panel" id="p-journal" role="tabpanel" hidden>
+    <div class="card" id="jGate">
+      <div><h2>Your private journal</h2><p class="lead">Only you can open yours, with your own password. Bindu and Anirban each have their own. Learning from mistakes lives here too.</p></div>
+      <div id="jWho" class="who seg"><button type="button" data-v="Bindu"><svg class="d"><use href="#duck"/></svg><span>Bindu</span></button><button type="button" data-v="Anirban"><svg class="d"><use href="#motorbike"/></svg><span>Anirban</span></button></div>
+      <form id="jForm" class="cond">
+        <div><label for="jPass">Your password <span class="hint">At least 6 characters. Forget it and it can't be recovered.</span></label><input type="password" id="jPass" autocomplete="off" style="width:100%"></div>
+        <div id="jNewWrap" hidden><label for="jOld">Current password (only to change it)</label><input type="password" id="jOld" autocomplete="off" style="width:100%"></div>
+        <div class="row"><button class="btn small" type="submit" id="jOpen">Open my journal</button><button class="btn small ghost" type="button" id="jSet">Set / change password</button></div>
+      </form>
+      <span class="status" id="jStatus"></span>
+    </div>
+    <div class="card" id="jBody" hidden>
+      <div class="row" style="justify-content:space-between"><span class="lbl" id="jTitle" style="margin:0">Journal</span><button class="x" id="jLock" type="button">Lock journal</button></div>
+      <textarea id="jText" placeholder="What happened, what I learned, what I'll do differently…" style="min-height:120px"></textarea>
+      <div class="row"><button class="btn small" id="jSave">Add to my journal</button><span class="status" id="jSaveStatus"></span></div>
+      <div id="jEntries" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+  </section>
+
   <!-- FEEDBACK -->
   <section class="panel" id="p-fb" role="tabpanel" hidden>
     <div class="card" id="propCard" hidden>
@@ -286,7 +328,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
       <div id="fbList" style="display:flex;flex-direction:column;gap:10px"><div class="empty">No notes yet.</div></div>
     </div>
     <div class="card">
-      <div><h2>Controls</h2><p class="lead" id="ownerLead">For Anirban. Enter your owner PIN to unlock.</p></div>
+      <div><h2>Controls</h2><p class="lead" id="ownerLead">For us both. Enter your owner PIN to unlock.</p></div>
       <form id="pinForm" class="row">
         <input type="password" id="pin" autocomplete="off" placeholder="Owner PIN" style="flex:1;min-width:0">
         <button class="btn small" type="submit">Unlock</button>
@@ -315,7 +357,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   const $ = id => document.getElementById(id);
   const today = () => new Date().toLocaleDateString("en-CA");
   const MOOD = {1:"Stormy",2:"Rainy",3:"Cloudy",4:"Bright",5:"Sunny"};
-  const ICON = { Bindu:"duck", Anirban:"bike" };
+  const MOODEM = {1:"⛈️",2:"🌧️",3:"☁️",4:"🌤️",5:"☀️"};
+  const ICON = { Bindu:"duck", Anirban:"motorbike" };
   const side = w => w === "Bindu" ? "her" : "his";
   const icon = name => { const s = document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("class","d"); const u = document.createElementNS("http://www.w3.org/2000/svg","use"); u.setAttribute("href","#"+name); s.append(u); return s; };
   const store = { get(k){ try { return localStorage.getItem(k) } catch(e){ return null } }, set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v) } catch(e){} } };
@@ -371,6 +414,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   async function boot(){
     if (API_URL.startsWith("PASTE")) { $("gate").hidden = false; $("gateStatus").textContent = "The app isn't connected to its Google Sheet yet."; return; }
     if (!pass) { $("gate").hidden = false; return; }
+    try { const cached = JSON.parse(store.get("nest-rules") || "null"); if (Array.isArray(cached)) { rules = cached; renderRules(); } } catch(e){}
     try { await refresh(); $("app").hidden = false; }
     catch(e){ $("gate").hidden = false; if (e.error === "wrong_passcode") store.set("nest-pass", null); else $("gateStatus").textContent = "Couldn't reach the nest. Check your connection and reload."; }
     const w = store.get("who"); if (w) { const b = $("who").querySelector(`[data-v="${w}"]`); if (b) b.click(); }
@@ -380,11 +424,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     const d = await call("load");
     entries = d.entries || []; feedback = d.feedback || []; st = d.state || {}; isOwner = !!d.isOwner;
     rules = (st.rules && Array.isArray(st.rules.items)) ? st.rules.items : [];
+    store.set("nest-rules", JSON.stringify(rules)); // so the rules show instantly next time
     renderAll();
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden && pass && !$("app").hidden) refresh().catch(() => {}); });
 
-  function renderAll(){ renderRules(); renderSugg(); renderHist(); renderFeedback(); renderProposal(); renderOwner(); showRemind(); drawNest(); }
+  function renderAll(){ renderRules(); renderSugg(); renderHist(); renderLists(); renderFeedback(); renderProposal(); renderOwner(); showRemind(); drawNest(); }
 
   // ---- Reminder switch ----
   function showRemind(){
@@ -402,7 +447,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   };
   function renderOwner(){
     $("ownerControls").hidden = !isOwner; $("pinForm").hidden = isOwner;
-    $("ownerLead").textContent = isOwner ? "Unlocked on this phone." : "For Anirban. Enter your owner PIN to unlock.";
+    $("ownerLead").textContent = isOwner ? "Unlocked on this phone." : "For us both. Enter your owner PIN to unlock.";
     const s = st.settings || {};
     $("aiPaused").checked = !!s.aiPaused; $("nightPaused").checked = !!s.nightlyPaused; $("remPaused").checked = !!s.remindersPaused;
   }
@@ -581,10 +626,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
         const p1 = document.createElement("span"); p1.className="pill"; p1.textContent = MOOD[e.mood] || ""; pills.append(p1);
         if (e.fight && e.fight !== "none"){ const p2 = document.createElement("span"); p2.className = "pill" + (e.fight==="big"?" big":""); p2.textContent = e.fight==="big"?"Big fight":"Small bump"; pills.append(p2); }
         top.append(w, pills); c.append(top);
-        [["What set it off","trigger"],["Felt","felt"],["Needed","needed"],["Would do differently","change"],["Loved","appreciation"],["Also","other"],[e.contextApp ? "From " + e.contextApp : "From my apps","context"]].forEach(([k,f]) => {
+        c.classList.add("framed");
+        const em = document.createElement("p"); em.className = "k"; em.style.margin = "0"; em.textContent = (MOODEM[e.mood] || "") + " " + (MOOD[e.mood] || "");
+        c.append(em);
+        [["🔥","What set it off","trigger"],["💭","Felt","felt"],["🤲","Needed","needed"],["🌱","Would do differently","change"],["💛","Loved","appreciation"],["📝","Also","other"],["📸",e.contextApp ? "From " + e.contextApp : "From my apps","context"]].forEach(([emo,k,f]) => {
           if (!e[f]) return;
-          const p = document.createElement("p"); const s = document.createElement("span"); s.className="k"; s.textContent = k+": ";
-          p.append(s, document.createTextNode(e[f])); c.append(p);
+          const wrap = document.createElement("div"); wrap.style.display = "flex"; wrap.style.flexDirection = "column"; wrap.style.gap = "2px";
+          const s = document.createElement("span"); s.className = "k"; s.textContent = emo + " " + k;
+          wrap.append(s); paragraphs(wrap, e[f]); c.append(wrap);
         });
         if (e.shotPending && !e.context){ const p = document.createElement("p"); p.className = "k"; p.textContent = "Screenshot waiting to be read tonight."; c.append(p); }
         sec.append(c);
@@ -602,6 +651,102 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
       strip.append(sp);
     }
     $("trendCard").hidden = !any;
+  }
+
+  // ---- Shared to-do and shopping lists ----
+  const listState = { todos: [], shopping: [] };
+  const LIST_UL = { todos: "todoList", shopping: "shopList" };
+  function renderLists(){
+    listState.todos = (st.todos && Array.isArray(st.todos.items)) ? st.todos.items : [];
+    listState.shopping = (st.shopping && Array.isArray(st.shopping.items)) ? st.shopping.items : [];
+    renderList("todos"); renderList("shopping");
+  }
+  function renderList(key){
+    const ul = $(LIST_UL[key]); ul.innerHTML = "";
+    const items = listState[key];
+    if (!items.length){ ul.innerHTML = '<li class="empty">Nothing here yet.</li>'; return; }
+    items.forEach(it => {
+      const li = document.createElement("li");
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!it.done; cb.setAttribute("aria-label", "Done"); cb.style.marginTop = "6px";
+      cb.onchange = () => { it.done = cb.checked; saveList(key); };
+      const t = document.createElement("div"); t.className = "txt"; t.textContent = it.text;
+      if (it.done){ t.style.textDecoration = "line-through"; t.style.opacity = ".6"; }
+      if (it.by){ const tag = document.createElement("div"); tag.className = "tag"; tag.textContent = "Added by " + it.by; t.append(tag); }
+      const x = document.createElement("button"); x.className = "x"; x.textContent = "Remove";
+      x.onclick = () => { listState[key] = listState[key].filter(q => q.id !== it.id); saveList(key); };
+      li.append(cb, t, x); ul.append(li);
+    });
+  }
+  async function saveList(key){
+    renderList(key);
+    try { await call("saveList", { key, items: listState[key] }); $("listStatus").textContent = ""; }
+    catch(e){ $("listStatus").textContent = "Couldn't save that list. Check your connection and try again."; }
+  }
+  const addTo = (key, inputId) => () => {
+    const v = $(inputId).value.trim(); if (!v) return;
+    listState[key] = [...listState[key], { id: rid(), text: v, done: false, by: val.who || "" }];
+    $(inputId).value = ""; saveList(key);
+  };
+  $("todoAdd").onclick = addTo("todos", "todoNew");
+  $("shopAdd").onclick = addTo("shopping", "shopNew");
+  $("todoNew").onkeydown = e => { if (e.key === "Enter") $("todoAdd").click(); };
+  $("shopNew").onkeydown = e => { if (e.key === "Enter") $("shopAdd").click(); };
+
+  // ---- Private journal: opened only with each person's own password (kept in memory, never saved on the phone) ----
+  let jWho = "", jPass = "";
+  const jBody = () => $("jBody"), jEntries = () => $("jEntries");
+  $("jWho").querySelectorAll("button").forEach(b => b.onclick = () => {
+    $("jWho").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    jWho = b.dataset.v; $("jStatus").textContent = "";
+  });
+  function jShowOpen(){
+    $("jGate").hidden = false; jBody().hidden = true; jPass = ""; $("jPass").value = ""; $("jOld").value = ""; $("jNewWrap").hidden = true; jEntries().innerHTML = "";
+  }
+  function renderJournal(list){
+    const box = jEntries(); box.innerHTML = "";
+    if (!list.length){ box.innerHTML = '<p class="status">No entries yet. Write the first one above.</p>'; return; }
+    list.forEach(e => {
+      const c = document.createElement("div"); c.className = "entry framed " + side(jWho);
+      const d = document.createElement("span"); d.className = "tag";
+      d.textContent = new Date(e.date + "T00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+      c.append(d); paragraphs(c, e.text); box.append(c);
+    });
+  }
+  async function jLoad(){
+    const r = await call("journalLoad", { who: jWho, password: jPass });
+    $("jGate").hidden = true; jBody().hidden = false; $("jTitle").textContent = jWho + "'s journal";
+    renderJournal(r.entries || []);
+  }
+  $("jForm").onsubmit = async ev => {
+    ev.preventDefault();
+    if (!jWho){ $("jStatus").textContent = "Pick whose journal it is first."; return; }
+    jPass = $("jPass").value;
+    $("jStatus").textContent = "Opening…";
+    try { await jLoad(); $("jStatus").textContent = ""; }
+    catch(e){ jPass = ""; $("jStatus").textContent = e.error === "wrong_password" ? "That password didn't match." : "Couldn't open the journal. Check your connection."; }
+  };
+  $("jSet").onclick = async () => {
+    if (!jWho){ $("jStatus").textContent = "Pick whose journal it is first."; return; }
+    if ($("jNewWrap").hidden){ $("jNewWrap").hidden = false; $("jStatus").textContent = "If you already have a password, enter it as the current one. Then press Set again."; return; }
+    const pw = $("jPass").value;
+    try { await call("setJournalPass", { who: jWho, password: pw, oldPassword: $("jOld").value }); $("jNewWrap").hidden = true; $("jOld").value = ""; $("jStatus").textContent = "Password saved. Open your journal with it."; }
+    catch(e){ $("jStatus").textContent = e.error === "password_too_short" ? "Use at least 6 characters." : e.error === "wrong_password" ? "The current password didn't match." : "Couldn't save the password. Try again."; }
+  };
+  $("jSave").onclick = async () => {
+    const t = $("jText").value.trim(), s = $("jSaveStatus");
+    if (!t){ s.textContent = "Write something first."; return; }
+    $("jSave").disabled = true; s.textContent = "Saving…";
+    try { await call("journalAdd", { who: jWho, password: jPass, text: t }); $("jText").value = ""; s.textContent = "Added."; await jLoad(); }
+    catch(e){ s.textContent = "Couldn't save. Your writing is still here."; }
+    finally { $("jSave").disabled = false; }
+  };
+  $("jLock").onclick = () => jShowOpen();
+
+  // ---- Helpers for the scrapbook look ----
+  function paragraphs(parent, text){
+    String(text || "").split(/\n\s*\n|\n/).map(s => s.trim()).filter(Boolean).forEach(line => {
+      const p = document.createElement("p"); p.style.margin = "0 0 6px"; p.textContent = line; parent.append(p);
+    });
   }
 
   // ---- Nest ----

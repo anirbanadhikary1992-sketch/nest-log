@@ -9,8 +9,10 @@ const TABS = {
   Entries: ["id", "date", "who", "mood", "fight", "trigger", "felt", "needed", "change", "pauseUsed",
             "appreciation", "other", "context", "contextApp", "shotFile", "createdAt"],
   Feedback: ["id", "who", "text", "status", "reply", "createdAt"],
+  Journal: ["id", "who", "date", "text", "createdAt"],
   State: ["key", "json", "updatedAt"]
 };
+const LIST_KEYS = ["todos", "shopping"];
 const WHO = ["Bindu", "Anirban"];
 const SHOT_FOLDER_ID = "15mOeSSfHazt_4G7Qx49N_aXTPy9XZumH"; // Drive folder "Nest Log screenshots"
 const STARTER_RULES = [
@@ -45,7 +47,8 @@ function doPost(e) {
   try { req = JSON.parse(e.postData.contents); } catch (x) { return json_({ error: "bad_request" }); }
   const props = PropertiesService.getScriptProperties();
   if (!req.pass || req.pass !== props.getProperty("PASSCODE")) return json_({ error: "wrong_passcode" });
-  const isOwner = !!req.ownerPin && req.ownerPin === props.getProperty("OWNER_PIN");
+  // Owner controls are open to both of us: OWNER_PIN (Anirban) or BINDU_PIN (Bindu). Both are script properties.
+  const isOwner = !!req.ownerPin && (req.ownerPin === props.getProperty("OWNER_PIN") || req.ownerPin === props.getProperty("BINDU_PIN"));
   const d = req.data || {};
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
@@ -60,6 +63,10 @@ function doPost(e) {
         setState_("logstatus_" + d.who, Object.assign({}, getState_("logstatus_" + d.who) || {}, { remind: !!d.remind }));
         return json_({ ok: true });
       case "dismissSuggestion": return json_(dismiss_(d));
+      case "saveList": return json_(saveList_(d));
+      case "setJournalPass": return json_(setJournalPass_(d));
+      case "journalLoad": return json_(journalLoad_(d));
+      case "journalAdd": return json_(journalAdd_(d));
       case "setSetting":
         if (!isOwner) return json_({ error: "owner_only" });
         if (["aiPaused", "nightlyPaused", "remindersPaused"].indexOf(d.key) < 0) return json_({ error: "bad_request" });
@@ -79,7 +86,7 @@ function doPost(e) {
 
 function load_(isOwner) {
   const state = {};
-  rows_("State").forEach(r => { try { state[r.key] = JSON.parse(r.json); } catch (x) {} });
+  rows_("State").forEach(r => { if (r.key === "accounts") return; try { state[r.key] = JSON.parse(r.json); } catch (x) {} }); // never send journal password digests to the app
   const entries = rows_("Entries").slice(-300).reverse().map(r => { const o = Object.assign({}, r); delete o.shotFile; o.shotPending = !!r.shotFile; return o; });
   return { entries: entries, feedback: rows_("Feedback").slice(-200).reverse(), state: state, isOwner: isOwner };
 }
@@ -118,6 +125,53 @@ function dismiss_(d) {
   s.dismissed = (s.dismissed || []).concat([String(d.key || "")]).slice(-50);
   setState_("suggestions", s);
   return { ok: true };
+}
+
+// Shared to-do and shopping lists. Both of us can edit; stored in State.
+function saveList_(d) {
+  if (LIST_KEYS.indexOf(d.key) < 0) return { error: "bad_request" };
+  const items = (Array.isArray(d.items) ? d.items : []).slice(0, 200).map(x => ({
+    id: String(x.id || Utilities.getUuid()).slice(0, 40), text: String(x.text || "").slice(0, 300),
+    done: !!x.done, by: WHO.indexOf(x.by) >= 0 ? x.by : ""
+  })).filter(x => x.text);
+  setState_(d.key, { items: items });
+  return { ok: true };
+}
+
+// Private journal. Each of us sets a password; the journal is only returned with that password.
+// Passwords are stored as salted SHA-256 digests in State key "accounts", never in plain text.
+function digest_(salt, pw) {
+  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + "|" + pw));
+}
+function checkJournalPass_(who, pw) {
+  if (WHO.indexOf(who) < 0 || !pw || String(pw).length < 6) return false;
+  const acc = (getState_("accounts") || {})[who];
+  return !!acc && acc.hash === digest_(acc.salt, String(pw));
+}
+function setJournalPass_(d) {
+  if (WHO.indexOf(d.who) < 0) return { error: "bad_request" };
+  const pw = String(d.password || "");
+  if (pw.length < 6) return { error: "password_too_short" };
+  const accounts = getState_("accounts") || {};
+  const existing = accounts[d.who];
+  if (existing && !checkJournalPass_(d.who, d.oldPassword)) return { error: "wrong_password" };
+  const salt = Utilities.getUuid();
+  accounts[d.who] = { salt: salt, hash: digest_(salt, pw) };
+  setState_("accounts", accounts);
+  return { ok: true };
+}
+function journalLoad_(d) {
+  if (!checkJournalPass_(d.who, d.password)) return { error: "wrong_password" };
+  const mine = rows_("Journal").filter(r => r.who === d.who).slice(-300).reverse();
+  return { ok: true, entries: mine };
+}
+function journalAdd_(d) {
+  if (!checkJournalPass_(d.who, d.password)) return { error: "wrong_password" };
+  const t = String(d.text || "").trim().slice(0, 8000);
+  if (!t) return { error: "bad_request" };
+  const e = { id: Utilities.getUuid(), who: d.who, date: Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd"), text: t, createdAt: new Date().toISOString() };
+  SpreadsheetApp.getActive().getSheetByName("Journal").appendRow(TABS.Journal.map(k => e[k]));
+  return { ok: true, id: e.id };
 }
 
 function cleanRules_(items) {
