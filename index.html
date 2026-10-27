@@ -344,7 +344,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
   </div>
 
   <footer>
-    <span>We are family. We always come back to each other with patience and love.</span>
+    <span id="dailyWord"></span>
   </footer>
 </div>
 
@@ -775,6 +775,54 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawNest); } catch(e){}
 
   boot();
+
+  // ---- Daily healing word ----
+  (function(){
+    const words = [
+      "You don't have to be perfect. You just have to keep showing up for each other.",
+      "A home is not a place. It's the feeling of being truly known by someone.",
+      "Some days love is a grand gesture. Most days it's just choosing to be gentle.",
+      "You are allowed to grow. You are allowed to change. You are still the same people who chose each other.",
+      "Rest is not giving up. Sometimes the most loving thing is to pause and breathe.",
+      "The small things — a glance, a cup of tea, a hand on the back — they are not small at all.",
+      "You will not always get it right. That's not the goal. Coming back is.",
+      "Two people, one direction. That's enough.",
+      "Your nervous system remembers safety. Keep building it together.",
+      "It's okay to need each other. That's not weakness. That's the whole point.",
+      "There is no finish line in love. Just the long, beautiful walk.",
+      "On the hard days, remember: you are each other's soft place to land.",
+      "Growth doesn't always look like progress. Sometimes it looks like stillness and trust.",
+      "The love you give each other today is quietly shaping who you'll be tomorrow.",
+      "You don't need to fix everything. Sometimes you just need to sit beside each other in it.",
+      "Being seen by someone — really seen — is one of the rarest gifts on earth. You have that.",
+      "Patience is not passive. It is active, steady, daily love.",
+      "The nest is not built in a day. Every twig counts.",
+      "When you choose kindness over being right, the whole room gets lighter.",
+      "You carry each other's stories. Hold them gently.",
+      "Not every silence is distance. Some silences are just two people breathing easy.",
+      "A relationship that grows together doesn't need to compare itself to anything.",
+      "Your love is not a performance. It lives in the ordinary, the quiet, the in-between.",
+      "Healing is not linear. Some weeks you go backwards. That's still moving.",
+      "You are both doing better than you think.",
+      "The version of you that shows up today — tired, imperfect, trying — is enough.",
+      "Every evening you write here is an act of care. Keep going.",
+      "There is so much tenderness in two people deciding to understand each other.",
+      "You don't need to earn rest. You don't need to earn peace. You don't need to earn each other.",
+      "Trust is built in the smallest moments. You are building it every day.",
+      "Whatever today held — you made it through. That matters.",
+      "The life you're building doesn't need to look like anyone else's.",
+      "Love that has been honest is stronger than love that has only been easy.",
+      "You are each other's home. Take care of it.",
+      "Some feelings just need to be felt, not fixed. Be with each other in them.",
+      "The fact that you still try — that is everything.",
+      "A good life is made of good days. And good days are made of moments like this one."
+    ];
+    const n = new Date();
+    const dayIndex = Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / 864e5);
+    const word = words[dayIndex % words.length];
+    const el = document.getElementById("dailyWord");
+    if (el) el.textContent = word;
+  })();
 })();
 </script>
 </body>
