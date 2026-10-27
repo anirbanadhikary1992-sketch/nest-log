@@ -56,6 +56,7 @@ function doPost(e) {
     switch (req.action) {
       case "load": return json_(load_(isOwner));
       case "addEntry": return json_(addEntry_(d, props));
+      case "updateEntry": return json_(updateEntry_(d));
       case "setRules": setState_("rules", { items: cleanRules_(d.items) }); return json_({ ok: true });
       case "addFeedback": return json_(addFeedback_(d));
       case "setRemind":
@@ -108,6 +109,31 @@ function addEntry_(d, props) {
   SpreadsheetApp.getActive().getSheetByName("Entries").appendRow(TABS.Entries.map(k => e[k]));
   setState_("logstatus_" + d.who, Object.assign({}, getState_("logstatus_" + d.who) || { remind: true }, { last: date }));
   return { ok: true, id: e.id };
+}
+
+// Edits one Entries row. Only the writer named in d.who can edit a row they wrote.
+// Passcode check in doPost() and owner PIN / BINDU_PIN logic are unchanged.
+function updateEntry_(d) {
+  if (WHO.indexOf(d.who) < 0) return { error: "bad_request" };
+  const sh = SpreadsheetApp.getActive().getSheetByName("Entries");
+  const v = sh.getDataRange().getValues();
+  const h = v[0];
+  const idCol = h.indexOf("id"), whoCol = h.indexOf("who");
+  for (let i = 1; i < v.length; i++) {
+    if (v[i][idCol] !== d.id) continue;
+    if (v[i][whoCol] !== d.who) return { error: "not_yours" };
+    const row = h.map((k, j) => v[i][j]); // keeps id, date, createdAt and shotFile as they are
+    const mood = Number(d.mood);
+    if (mood >= 1 && mood <= 5) row[h.indexOf("mood")] = mood;
+    if (["none", "small", "big"].indexOf(d.fight) >= 0) row[h.indexOf("fight")] = d.fight;
+    if (["yes", "no", "na", ""].indexOf(d.pauseUsed) >= 0) row[h.indexOf("pauseUsed")] = d.pauseUsed;
+    TEXT_FIELDS.forEach(f => {
+      if (h.indexOf(f) >= 0 && d[f] !== undefined) row[h.indexOf(f)] = String(d[f]).slice(0, 4000);
+    });
+    sh.getRange(i + 1, 1, 1, h.length).setValues([row]);
+    return { ok: true };
+  }
+  return { error: "not_found" };
 }
 
 function addFeedback_(d) {
