@@ -496,7 +496,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
       const c = document.createElement("div"); c.className = "entry " + side(f.who);
       const top = document.createElement("div"); top.className = "top";
       const w = document.createElement("span"); w.className = "whoTag " + side(f.who);
-      w.append(icon(ICON[f.who] || "leaf"), document.createTextNode((f.who || "") + " · " + new Date(f.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short"})));
+      { const fdt = new Date(f.createdAt); w.append(icon(ICON[f.who] || "leaf"), document.createTextNode((f.who || "") + " · " + (isNaN(fdt) ? "" : fdt.toLocaleDateString("en-IN",{day:"numeric",month:"short"})))); }
       const p = document.createElement("span"); p.className = "pill"; p.textContent = FBST[f.status] || "New";
       top.append(w, p);
       const t = document.createElement("p"); t.textContent = f.text || "";
@@ -540,7 +540,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     if (!r || !r.createdAt) return;
     out.innerHTML = "";
     const dismissed = new Set(r.dismissed || []);
-    const when = document.createElement("span"); when.className = "tag"; when.textContent = "From the night of " + new Date(r.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short"}); out.append(when);
+    const when = document.createElement("span"); when.className = "tag"; { const wdt = new Date(r.createdAt); when.textContent = "From the night of " + (isNaN(wdt) ? "" : wdt.toLocaleDateString("en-IN",{day:"numeric",month:"short"})); } out.append(when);
     if (r.safety){ const n = document.createElement("div"); n.className="notice"; n.textContent = "Some pages describe someone feeling unsafe or things getting physical. Rules alone aren't enough for that. Please talk to a counsellor, and if anyone is in danger, call 112."; out.append(n); }
     if (r.summary){ const p = document.createElement("p"); p.style.margin="0"; p.textContent = r.summary; out.append(p); }
     if (Array.isArray(r.patterns) && r.patterns.length){ const ul = document.createElement("ul"); ul.style.margin="0"; ul.style.paddingLeft="18px"; r.patterns.forEach(t => { const li = document.createElement("li"); li.textContent = String(t); ul.append(li); }); out.append(ul); }
@@ -615,7 +615,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     days.slice().reverse().forEach(d => {
       const sec = document.createElement("div"); sec.className="day";
       const h = document.createElement("h3");
-      h.textContent = new Date(d+"T00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});
+      { const dt = new Date(d+"T00:00"); h.textContent = isNaN(dt) ? d : dt.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"}); }
       const sm = document.createElement("small"); sm.textContent = "Page " + (days.indexOf(d)+1); h.append(sm);
       sec.append(h);
       byDay[d].forEach(e => {
@@ -708,7 +708,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     list.forEach(e => {
       const c = document.createElement("div"); c.className = "entry framed " + side(jWho);
       const d = document.createElement("span"); d.className = "tag";
-      d.textContent = new Date(e.date + "T00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+      { const dt = new Date(e.date + "T00:00"); d.textContent = isNaN(dt) ? (e.date || "") : dt.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }); }
       c.append(d); paragraphs(c, e.text); box.append(c);
     });
   }
