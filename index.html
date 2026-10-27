@@ -53,8 +53,8 @@ svg.d.logo{width:52px;height:52px;color:var(--twig);stroke-width:2.4}
 #nest{width:170px;height:112px;display:block;max-width:100%}
 .nestcap{font-size:13px;color:var(--muted);text-align:center}
 @media (max-width:440px){.masthead{grid-template-columns:1fr}.nestbox{order:-1}h1{font-size:38px}}
-.doodles{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1.5px dashed var(--line);border-bottom:1.5px dashed var(--line)}
-.doodles .side{display:flex;gap:10px;flex-wrap:wrap}
+.doodles{display:flex;flex-wrap:nowrap;gap:6px 14px;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1.5px dashed var(--line);border-bottom:1.5px dashed var(--line)}
+.doodles .side{display:flex;gap:10px;flex-wrap:nowrap}
 .doodles .her{color:var(--her)} .doodles .his{color:var(--his)}
 .doodles svg{transition:transform .3s ease,color .3s ease}
 .doodles svg:hover{transform:scale(1.25) rotate(-8deg);animation:float 2s ease-in-out infinite}
@@ -225,6 +225,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
           <button type="button" data-v="Bindu"><svg class="d"><use href="#duck"/></svg><span>Bindu</span></button>
           <button type="button" data-v="Anirban"><svg class="d"><use href="#motorbike"/></svg><span>Anirban</span></button>
         </div>
+        <div class="seg" id="dayPick" style="margin-top:10px"><button type="button" data-v="0" aria-pressed="true">Today</button><button type="button" data-v="1" aria-pressed="false">Yesterday (d-1)</button></div>
         <div class="switch" id="remindWrap" hidden style="margin-top:10px"><input type="checkbox" id="remindMe"><label for="remindMe" style="margin:0;font-weight:500">Email me at 9:15 pm on nights I haven't written</label></div>
       </div>
       <div>
@@ -308,7 +309,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
   <!-- JOURNAL (private to each of us, behind our own password) -->
   <section class="panel" id="p-journal" role="tabpanel" hidden>
     <div class="card" id="jGate">
-      <div><h2>Your private journal</h2><p class="lead">Your space alone. Reflect, process, and grow at your own pace. No one can read this but you.</p></div>
+      <div><h2>Personal Journal</h2><p class="lead">Your space alone. Reflect, process, and grow at your own pace. No one can read this but you.</p></div>
       <div id="jWho" class="who seg"><button type="button" data-v="Bindu"><svg class="d"><use href="#duck"/></svg><span>Bindu</span></button><button type="button" data-v="Anirban"><svg class="d"><use href="#motorbike"/></svg><span>Anirban</span></button></div>
       <form id="jForm" class="cond">
         <div><label for="jPass">Your password <span class="hint">At least 6 characters. Forget it and it can't be recovered.</span></label><input type="password" id="jPass" autocomplete="off" style="width:100%"></div>
@@ -373,6 +374,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
 (() => {
   const $ = id => document.getElementById(id);
   const today = () => new Date().toLocaleDateString("en-CA");
+  let dayOffset = 0; // 0 = today, 1 = yesterday (d-1)
+  const logDate = () => { const d = new Date(); d.setDate(d.getDate() - dayOffset); return d.toLocaleDateString("en-CA"); };
   const MOOD = {1:"Stormy",2:"Rainy",3:"Cloudy",4:"Bright",5:"Sunny"};
   const MOODEM = {1:"⛈️",2:"🌧️",3:"☁️",4:"🌤️",5:"☀️"};
   const ICON = { Bindu:"duck", Anirban:"motorbike" };
@@ -416,6 +419,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   }
   seg("who", v => { store.set("who", v); showRemind(); renderHist(); });
   seg("mood"); seg("pause");
+  seg("dayPick", v => { dayOffset = Number(v) || 0; });
   seg("fight", v => { $("fightBox").hidden = v === "none"; });
 
   // ---- Gate ----
@@ -606,7 +610,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     if (!val.mood) { s.textContent = "Pick today's weather."; return; }
     if (!val.fight) { s.textContent = "Say whether there was a fight today."; return; }
     const none = val.fight === "none";
-    const e = { date: today(), who: val.who, mood: Number(val.mood), fight: val.fight,
+    const e = { date: logDate(), who: val.who, mood: Number(val.mood), fight: val.fight,
       trigger: none ? "" : $("f-trigger").value.trim(), felt: none ? "" : $("f-felt").value.trim(),
       needed: none ? "" : $("f-needed").value.trim(), change: none ? "" : $("f-change").value.trim(),
       pauseUsed: none ? "" : (val.pause || ""), appreciation: $("f-appr").value.trim(), other: $("f-other").value.trim(), shot };
