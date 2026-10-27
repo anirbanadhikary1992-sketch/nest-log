@@ -1,0 +1,28 @@
+Snippet for apps-script/Code.gs. See feedback-2026-10-27-1118.md for the explanation.
+
+1) Add to the switch in doPost:
+      case "updateEntry": return json_(updateEntry_(d));
+
+2) Add this function near addEntry_:
+
+function updateEntry_(d) {
+  if (WHO.indexOf(d.who) < 0 || !d.id) return { error: "bad_request" };
+  const sh = SpreadsheetApp.getActive().getSheetByName("Entries");
+  const v = sh.getDataRange().getValues();
+  const h = v[0];
+  const idCol = h.indexOf("id"), whoCol = h.indexOf("who");
+  for (let i = 1; i < v.length; i++) {
+    if (String(v[i][idCol]) !== String(d.id)) continue;
+    if (v[i][whoCol] !== d.who) return { error: "not_yours" };
+    const row = {};
+    h.forEach((k, j) => row[k] = v[i][j]);
+    const mood = Number(d.mood);
+    if (mood >= 1 && mood <= 5) row.mood = mood;
+    if (["none", "small", "big"].indexOf(d.fight) >= 0) row.fight = d.fight;
+    if (["yes", "no", "na", ""].indexOf(d.pauseUsed) >= 0) row.pauseUsed = d.pauseUsed;
+    TEXT_FIELDS.forEach(f => { if (d[f] !== undefined) row[f] = String(d[f] || "").slice(0, 4000); });
+    sh.getRange(i + 1, 1, 1, h.length).setValues([h.map(k => row[k] === undefined ? "" : row[k])]);
+    return { ok: true };
+  }
+  return { error: "not_found" };
+}
