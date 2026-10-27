@@ -344,7 +344,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
   </div>
 
   <footer>
-    <span>If an argument ever turns physical, or either of us feels afraid or unsafe, we stop and get outside help: a trusted person, a counsellor, or emergency services (112). If the same fights keep coming back, we book a couples counsellor.</span>
+    <span>We are family. We always come back to each other with patience and love.</span>
   </footer>
 </div>
 
@@ -541,7 +541,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     out.innerHTML = "";
     const dismissed = new Set(r.dismissed || []);
     const when = document.createElement("span"); when.className = "tag"; { const wdt = new Date(r.createdAt); when.textContent = "From the night of " + (isNaN(wdt) ? "" : wdt.toLocaleDateString("en-IN",{day:"numeric",month:"short"})); } out.append(when);
-    if (r.safety){ const n = document.createElement("div"); n.className="notice"; n.textContent = "Some pages describe someone feeling unsafe or things getting physical. Rules alone aren't enough for that. Please talk to a counsellor, and if anyone is in danger, call 112."; out.append(n); }
+    if (r.safety){ const n = document.createElement("div"); n.className="notice"; n.textContent = "Some of these pages sound like things got really hard. You're family — it's okay to lean on someone you both trust, and to ask for outside support if you need it."; out.append(n); }
     if (r.summary){ const p = document.createElement("p"); p.style.margin="0"; p.textContent = r.summary; out.append(p); }
     if (Array.isArray(r.patterns) && r.patterns.length){ const ul = document.createElement("ul"); ul.style.margin="0"; ul.style.paddingLeft="18px"; r.patterns.forEach(t => { const li = document.createElement("li"); li.textContent = String(t); ul.append(li); }); out.append(ul); }
     const byId = Object.fromEntries(rules.map(x => [x.id, x]));
