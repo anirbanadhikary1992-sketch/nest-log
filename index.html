@@ -54,7 +54,8 @@ svg.d.logo{width:52px;height:52px;color:var(--twig);stroke-width:2.4}
 .nestcap{font-size:13px;color:var(--muted);text-align:center}
 @media (max-width:440px){.masthead{grid-template-columns:1fr}.nestbox{order:-1}h1{font-size:38px}}
 .doodles{display:flex;flex-wrap:nowrap;gap:6px 14px;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1.5px dashed var(--line);border-bottom:1.5px dashed var(--line)}
-.doodles .side{display:flex;gap:10px;flex-wrap:nowrap}
+.doodles .side{display:flex;gap:clamp(4px,1.8vw,10px);flex-wrap:nowrap}
+.doodles svg.d{width:min(28px,6.2vw);height:min(28px,6.2vw)} /* one line on every phone width */
 .doodles .her{color:var(--her)} .doodles .his{color:var(--his)}
 .doodles svg{transition:transform .3s ease,color .3s ease}
 .doodles svg:hover{transform:scale(1.25) rotate(-8deg);animation:float 2s ease-in-out infinite}
@@ -197,10 +198,13 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
   <!-- PASSCODE GATE -->
   <section class="panel" id="gate" hidden>
     <div class="card">
-      <div><h2>Welcome to our nest</h2><p class="lead">Enter the passcode you both share. This phone will remember it.</p></div>
-      <form id="gateForm" class="row">
-        <input type="password" id="pass" autocomplete="current-password" placeholder="Passcode" style="flex:1;min-width:0">
-        <button class="btn" type="submit">Open</button>
+      <div><h2>Welcome to our nest</h2><p class="lead">Sign in with your email and the passcode you both share. This phone will remember them.</p></div>
+      <form id="gateForm" style="display:flex;flex-direction:column;gap:10px">
+        <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="Your email" style="width:100%">
+        <div class="row">
+          <input type="password" id="pass" autocomplete="current-password" placeholder="Passcode" style="flex:1;min-width:0">
+          <button class="btn" type="submit">Open</button>
+        </div>
       </form>
       <span class="status" id="gateStatus"></span>
     </div>
@@ -208,11 +212,11 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
 
   <div id="app" hidden style="display:flex;flex-direction:column;gap:22px">
   <nav class="tabs" role="tablist">
-    <button class="tab" role="tab" aria-selected="true" data-p="p-today">Today's page</button>
+    <button class="tab" role="tab" aria-selected="true" data-p="p-today">Common Journal</button>
     <button class="tab" role="tab" aria-selected="false" data-p="p-rules">Our rules</button>
     <button class="tab" role="tab" aria-selected="false" data-p="p-hist">The log</button>
     <button class="tab" role="tab" aria-selected="false" data-p="p-lists">To-dos &amp; shopping</button>
-    <button class="tab" role="tab" aria-selected="false" data-p="p-journal">Our journal</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="p-journal">Personal Journal</button>
     <button class="tab" role="tab" aria-selected="false" data-p="p-fb">Feedback</button>
   </nav>
 
@@ -272,9 +276,14 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
       <div><h2>How we care for each other</h2><p class="lead">Our shared agreements. Read them when things get hard, and change them together as you grow.</p></div>
       <ol class="rules" id="rulesList"><li class="empty">Rules are loading…</li></ol>
       <div class="row">
-        <input type="text" id="newRule" placeholder="Add a rule we both agree on" style="flex:1;min-width:0">
-        <button class="btn small" id="addRule">Add</button>
+        <input type="text" id="newRule" placeholder="Suggest a rule for us both to agree on" style="flex:1;min-width:0">
+        <button class="btn small" id="addRule">Suggest</button>
       </div>
+      <span class="status" id="ruleStatus"></span>
+    </div>
+    <div class="card" id="pendCard" hidden>
+      <div><h2>Waiting for both of us</h2><p class="lead">A rule joins the book only when each of us has ticked all three: I understand it, I agree, I'll follow it.</p></div>
+      <div class="sugg" id="pendList"></div>
     </div>
     <div class="card">
       <div><h2>Let the rules grow</h2><p class="lead">Every night Claude reads the last 14 days of the log and suggests rules to add, reword or retire. Nothing changes unless you accept it.</p></div>
@@ -337,7 +346,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
       <span class="status" id="propStatus"></span>
     </div>
     <div class="card">
-      <div><h2>Tell Claude what to change</h2><p class="lead">Something missing, confusing, or that could work better. Claude reads new notes overnight and drafts improvements. Anirban approves them before they go live.</p></div>
+      <div><h2>Tell Claude what to change</h2><p class="lead">Something missing, confusing, or that could work better. Claude reads new notes overnight and drafts improvements. Either of us can approve them before they go live.</p></div>
       <div><label for="fbText">Your note</label><textarea id="fbText" placeholder="e.g. Add a place to stick a photo of the day"></textarea></div>
       <div class="row"><button class="btn" id="fbSave">Send note</button><span class="status" id="fbStatus"></span></div>
     </div>
@@ -346,7 +355,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
       <div id="fbList" style="display:flex;flex-direction:column;gap:10px"><div class="empty">No notes yet.</div></div>
     </div>
     <div class="card">
-      <div><h2>Controls</h2><p class="lead" id="ownerLead">For us both. Enter your owner PIN to unlock.</p></div>
+      <div><h2>Controls</h2><p class="lead" id="ownerLead">Pause switches. Enter your owner PIN to unlock.</p></div>
       <form id="pinForm" class="row">
         <input type="password" id="pin" autocomplete="off" placeholder="Owner PIN" style="flex:1;min-width:0">
         <button class="btn small" type="submit">Unlock</button>
@@ -356,7 +365,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
         <div class="switch"><input type="checkbox" id="nightPaused"><label for="nightPaused" style="margin:0;font-weight:500">Pause overnight updates and emails</label></div>
         <div class="switch"><input type="checkbox" id="remPaused"><label for="remPaused" style="margin:0;font-weight:500">Pause reminder emails for both of us</label></div>
       </div>
-      <button class="x" id="forget" type="button" style="align-self:flex-start">Lock this phone (forget passcode)</button>
+      <button class="x" id="forget" type="button" style="align-self:flex-start">Sign out of this phone</button>
     </div>
   </section>
   </div>
@@ -392,21 +401,22 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   const resolveColor = name => { probe.style.color = `var(${name})`; return getComputedStyle(probe).color; };
 
   // ---- API ----
-  let pass = store.get("nest-pass") || "", pin = store.get("nest-pin") || "";
+  let pass = store.get("nest-pass") || "", pin = store.get("nest-pin") || "", email = store.get("nest-email") || "";
   async function call(action, data = {}){
-    const r = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, data, pass, ownerPin: pin }) });
+    const r = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, data, pass, email, ownerPin: pin }) });
     const j = await r.json();
     if (j.error) throw j;
     return j;
   }
 
   // ---- State ----
-  let entries = [], feedback = [], rules = [], st = {}, isOwner = false;
+  let entries = [], feedback = [], rules = [], st = {}, isOwner = false, me = "";
   const val = {};
 
   // Tabs
   document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
     document.querySelectorAll(".tab").forEach(x => { x.setAttribute("aria-selected", x===t); $(x.dataset.p).hidden = x!==t; });
+    if (t.dataset.p === "p-lists" || t.dataset.p === "p-rules") refresh().catch(() => {}); // fresh lists and rules from the other phone
   });
 
   // Segmented controls
@@ -425,32 +435,40 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   // ---- Gate ----
   $("gateForm").onsubmit = async ev => {
     ev.preventDefault();
-    pass = $("pass").value.trim(); if (!pass) return;
+    email = $("email").value.trim().toLowerCase(); pass = $("pass").value.trim();
+    if (!email) { $("gateStatus").textContent = "Enter your email."; return; }
+    if (!pass) return;
     $("gateStatus").textContent = "Opening…";
-    try { await refresh(); store.set("nest-pass", pass); $("gate").hidden = true; $("app").hidden = false; $("gateStatus").textContent = ""; }
-    catch(e){ $("gateStatus").textContent = e.error === "wrong_passcode" ? "That passcode didn't work." : "Couldn't reach the nest. Check your connection."; pass = ""; }
+    try { await refresh(); store.set("nest-pass", pass); store.set("nest-email", email); $("gate").hidden = true; $("app").hidden = false; $("gateStatus").textContent = ""; pickMe(); }
+    catch(e){ $("gateStatus").textContent = e.error === "wrong_passcode" ? "That passcode didn't work." : e.error === "wrong_email" ? "That email isn't one of ours." : "Couldn't reach the nest. Check your connection."; pass = ""; }
   };
-  $("forget").onclick = () => { store.set("nest-pass", null); store.set("nest-pin", null); location.reload(); };
+  $("forget").onclick = () => { store.set("nest-pass", null); store.set("nest-pin", null); store.set("nest-email", null); location.reload(); };
+  // The signed-in person writes as themselves by default.
+  function pickMe(){ if (me && !store.get("who")) { const b = $("who").querySelector(`[data-v="${me}"]`); if (b) b.click(); } }
+  $("email").value = email;
 
   async function boot(){
     if (API_URL.startsWith("PASTE")) { $("gate").hidden = false; $("gateStatus").textContent = "The app isn't connected to its Google Sheet yet."; return; }
     if (!pass) { $("gate").hidden = false; return; }
     try { const cached = JSON.parse(store.get("nest-rules") || "null"); if (Array.isArray(cached)) { rules = cached; renderRules(); } } catch(e){}
     try { await refresh(); $("app").hidden = false; }
-    catch(e){ $("gate").hidden = false; if (e.error === "wrong_passcode") store.set("nest-pass", null); else $("gateStatus").textContent = "Couldn't reach the nest. Check your connection and reload."; }
-    const w = store.get("who"); if (w) { const b = $("who").querySelector(`[data-v="${w}"]`); if (b) b.click(); }
+    catch(e){ $("gate").hidden = false;
+      if (e.error === "wrong_passcode") store.set("nest-pass", null);
+      else if (e.error === "wrong_email") $("gateStatus").textContent = "Sign in with your email to continue.";
+      else $("gateStatus").textContent = "Couldn't reach the nest. Check your connection and reload."; }
+    const w = store.get("who"); if (w) { const b = $("who").querySelector(`[data-v="${w}"]`); if (b) b.click(); } else pickMe();
   }
 
   async function refresh(){
     const d = await call("load");
-    entries = d.entries || []; feedback = d.feedback || []; st = d.state || {}; isOwner = !!d.isOwner;
-    rules = (st.rules && Array.isArray(st.rules.items)) ? st.rules.items : [];
+    entries = d.entries || []; feedback = d.feedback || []; st = d.state || {}; isOwner = !!d.isOwner; me = d.me || "";
+    rules =(st.rules && Array.isArray(st.rules.items)) ? st.rules.items : [];
     store.set("nest-rules", JSON.stringify(rules)); // so the rules show instantly next time
     renderAll();
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden && pass && !$("app").hidden) refresh().catch(() => {}); });
 
-  function renderAll(){ renderRules(); renderSugg(); renderHist(); renderLists(); renderFeedback(); renderProposal(); renderOwner(); showRemind(); drawNest(); }
+  function renderAll(){ renderRules(); renderPending(); renderSugg(); renderHist(); renderLists(); renderFeedback(); renderProposal(); renderOwner(); showRemind(); drawNest(); }
 
   // ---- Reminder switch ----
   function showRemind(){
@@ -468,7 +486,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   };
   function renderOwner(){
     $("ownerControls").hidden = !isOwner; $("pinForm").hidden = isOwner;
-    $("ownerLead").textContent = isOwner ? "Unlocked on this phone." : "For us both. Enter your owner PIN to unlock.";
+    $("ownerLead").textContent = isOwner ? "Unlocked on this phone." : "Pause switches. Enter your owner PIN to unlock.";
     const s = st.settings || {};
     $("aiPaused").checked = !!s.aiPaused; $("nightPaused").checked = !!s.nightlyPaused; $("remPaused").checked = !!s.remindersPaused;
   }
@@ -486,9 +504,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     (Array.isArray(p.changes) ? p.changes : []).forEach(c => { const li = document.createElement("li"); li.textContent = String(c); ul.append(li); });
     const link = typeof p.previewUrl === "string" && p.previewUrl.startsWith("https://") ? p.previewUrl : "";
     $("propPreview").hidden = !link; if (link) $("propLink").href = link;
+    // Either of us can approve or reject (approved by Anirban, 27 Oct 2026). The PIN only guards the pause switches.
     if (p.status === "approved") { $("propActions").hidden = true; $("propStatus").textContent = "Approved. It goes live at the next run (around 1 pm or 2 am)."; }
-    else if (!isOwner) { $("propActions").hidden = true; $("propStatus").textContent = "Waiting for Anirban to approve."; }
-    else { $("propActions").hidden = false; $("propStatus").textContent = ""; }
+    else { $("propActions").hidden = false; $("propStatus").textContent = "Either of us can approve or reject."; }
   }
   const decide = async status => {
     $("propYes").disabled = $("propNo").disabled = true;
@@ -504,7 +522,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   $("fbSave").onclick = async () => {
     const t = $("fbText").value.trim(), s = $("fbStatus");
     if (!t) { s.textContent = "Write something first."; return; }
-    if (!val.who) { s.textContent = "Pick who you are on Today's page first."; return; }
+    if (!val.who) { s.textContent = "Pick who you are on the Common Journal tab first."; return; }
     $("fbSave").disabled = true; s.textContent = "Sending…";
     try { await call("addFeedback", { who: val.who, text: t }); $("fbText").value = ""; s.textContent = "Sent. Claude will look at it tonight."; await refresh(); }
     catch(e){ s.textContent = "Couldn't send. Check your connection and try again."; }
@@ -549,9 +567,59 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
       li.append(n, t, x); ol.append(li);
     });
   }
-  $("addRule").onclick = () => {
+  // ---- New rules wait for both of us to tick all three checks ----
+  const CHECKS = ["I understand it", "I agree", "I'll follow it"];
+  const PEOPLE = ["Bindu", "Anirban"];
+  const myName = () => me || val.who || "";
+  const ruleErr = e => e && e.error === "unknown_action" ? "This needs the backend update. Ask Anirban to redeploy the Apps Script." : "Couldn't save that. Check your connection and try again.";
+  function applyRuleResult(r){
+    if (Array.isArray(r.pending)) st.pendingRules = { items: r.pending };
+    if (Array.isArray(r.rules)) { rules = r.rules; st.rules = { items: rules }; store.set("nest-rules", JSON.stringify(rules)); renderRules(); }
+    renderPending();
+  }
+  async function proposeRule(text, source, replaces){
+    if (!myName()) { $("ruleStatus").textContent = "Pick who you are on the Common Journal tab first."; throw {}; }
+    try { const r = await call("proposeRule", { text, source, replaces: replaces || "", who: myName() }); applyRuleResult(r); $("ruleStatus").textContent = "Added below. It joins the book once you both tick all three."; }
+    catch(e){ $("ruleStatus").textContent = ruleErr(e); throw e; }
+  }
+  function renderPending(){
+    const items = (st.pendingRules && Array.isArray(st.pendingRules.items)) ? st.pendingRules.items : [];
+    const box = $("pendList"); box.innerHTML = ""; $("pendCard").hidden = !items.length;
+    const byId = Object.fromEntries(rules.map(x => [x.id, x]));
+    items.forEach(it => {
+      const d = document.createElement("div"); d.className = "sitem";
+      const tg = document.createElement("span"); tg.className = "tag";
+      tg.textContent = (it.replaces && byId[it.replaces] ? "Reword: " + byId[it.replaces].text : "New rule") + (it.by ? " · suggested by " + it.by : "");
+      const t = document.createElement("div"); t.textContent = it.text;
+      d.append(tg, t);
+      PEOPLE.forEach(w => {
+        const ticks = (it.ticks && it.ticks[w]) || [];
+        const row = document.createElement("div"); row.className = "row"; row.style.gap = "6px 14px";
+        const nm = document.createElement("span"); nm.className = "whoTag " + side(w); nm.append(icon(ICON[w]), document.createTextNode(w)); row.append(nm);
+        CHECKS.forEach((c, i) => {
+          const lab = document.createElement("label"); lab.style.cssText = "margin:0;font-weight:500;display:inline-flex;gap:6px;align-items:center";
+          const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!ticks[i];
+          cb.disabled = myName() !== w; // each of us ticks only our own
+          cb.onchange = async () => {
+            cb.disabled = true;
+            try { const r = await call("ruleTick", { id: it.id, i, value: cb.checked, who: myName() }); applyRuleResult(r); if (r.agreed) $("ruleStatus").textContent = "You both agreed. It's in the rule book now."; }
+            catch(e){ cb.checked = !cb.checked; cb.disabled = false; $("ruleStatus").textContent = ruleErr(e); }
+          };
+          lab.append(cb, document.createTextNode(c)); row.append(lab);
+        });
+        d.append(row);
+      });
+      const x = document.createElement("button"); x.className = "x"; x.textContent = "Withdraw"; x.style.alignSelf = "flex-start";
+      x.onclick = async () => {
+        if (!x.dataset.armed) { x.dataset.armed = "1"; x.textContent = "Tap again to withdraw"; setTimeout(() => { x.textContent = "Withdraw"; delete x.dataset.armed; }, 4000); return; }
+        try { applyRuleResult(await call("dropRule", { id: it.id })); } catch(e){ $("ruleStatus").textContent = ruleErr(e); }
+      };
+      d.append(x); box.append(d);
+    });
+  }
+  $("addRule").onclick = async () => {
     const v = $("newRule").value.trim(); if (!v) return;
-    saveRules([...rules, { id: rid(), text: v, source: "manual", added: today() }]); $("newRule").value = "";
+    try { await proposeRule(v, "manual"); $("newRule").value = ""; } catch(e){}
   };
 
   // ---- Rule suggestions (written nightly by Claude into the Sheet) ----
@@ -576,12 +644,13 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
       const a = document.createElement("button"); a.className="btn small"; a.textContent="Accept";
       const s = document.createElement("button"); s.className="btn small ghost"; s.textContent="Skip";
       const done = async () => { d.remove(); r.dismissed = [...(r.dismissed||[]), key]; call("dismissSuggestion", { key }).catch(() => {}); };
-      a.onclick = async () => { a.disabled = s.disabled = true; await act(); done(); };
+      a.onclick = async () => { a.disabled = s.disabled = true; try { await act(); done(); } catch(e){ a.disabled = s.disabled = false; } };
       s.onclick = done;
       row.append(a, s); d.append(tg, t, w, row); out.append(d);
     };
-    (r.add||[]).forEach((x,i) => x && x.text && item("add"+i, "New rule", String(x.text), String(x.why||""), () => saveRules([...rules, { id: rid(), text: String(x.text), source:"suggested", added: today() }])));
-    (r.revise||[]).forEach((x,i) => x && byId[x.id] && x.text && item("rev"+i, "Reword: " + byId[x.id].text, String(x.text), String(x.why||""), () => saveRules(rules.map(q => q.id===x.id ? {...q, text:String(x.text), source:"suggested", added: today()} : q))));
+    // Accepting a new or reworded rule sends it to "Waiting for both of us"; it joins the book after both tick all three.
+    (r.add||[]).forEach((x,i) => x && x.text && item("add"+i, "New rule", String(x.text), String(x.why||""), () => proposeRule(String(x.text), "suggested")));
+    (r.revise||[]).forEach((x,i) => x && byId[x.id] && x.text && item("rev"+i, "Reword: " + byId[x.id].text, String(x.text), String(x.why||""), () => proposeRule(String(x.text), "suggested", x.id)));
     (r.retire||[]).forEach((x,i) => x && byId[x.id] && item("ret"+i, "Retire", byId[x.id].text, String(x.why||""), () => saveRules(rules.filter(q => q.id!==x.id))));
     if (!out.querySelector(".sitem")){ const p = document.createElement("p"); p.className="status"; p.textContent = "Nothing left to decide. New suggestions come overnight."; out.append(p); }
   }
@@ -732,12 +801,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     items.forEach(it => {
       const li = document.createElement("li");
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!it.done; cb.setAttribute("aria-label", "Done"); cb.style.marginTop = "6px";
-      cb.onchange = () => { it.done = cb.checked; saveList(key); };
+      cb.onchange = () => { it.done = cb.checked; listOp(key, { op: "toggle", id: it.id, done: cb.checked }); };
       const t = document.createElement("div"); t.className = "txt"; t.textContent = it.text;
       if (it.done){ t.style.textDecoration = "line-through"; t.style.opacity = ".6"; }
       if (it.by){ const tag = document.createElement("div"); tag.className = "tag"; tag.textContent = "Added by " + it.by; t.append(tag); }
       const x = document.createElement("button"); x.className = "x"; x.textContent = "Remove";
-      x.onclick = () => { listState[key] = listState[key].filter(q => q.id !== it.id); saveList(key); };
+      x.onclick = () => { listState[key] = listState[key].filter(q => q.id !== it.id); listOp(key, { op: "remove", id: it.id }); };
       li.append(cb, t, x); ul.append(li);
     });
   }
@@ -746,11 +815,27 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     try { await call("saveList", { key, items: listState[key] }); $("listStatus").textContent = ""; }
     catch(e){ $("listStatus").textContent = "Couldn't save that list. Check your connection and try again."; }
   }
+  // Each change is sent on its own and applied to the latest saved list, so the two phones never overwrite each other.
+  // Falls back to the old whole-list save until the backend is redeployed.
+  async function listOp(key, op){
+    renderList(key);
+    try {
+      const r = await call("listOp", Object.assign({ key }, op));
+      listState[key] = Array.isArray(r.items) ? r.items : listState[key];
+      st[key] = { items: listState[key] }; renderList(key); $("listStatus").textContent = "";
+    } catch(e){
+      if (e && e.error === "unknown_action") return saveList(key);
+      $("listStatus").textContent = "Couldn't save that list. Check your connection and try again.";
+    }
+  }
   const addTo = (key, inputId) => () => {
     const v = $(inputId).value.trim(); if (!v) return;
-    listState[key] = [...listState[key], { id: rid(), text: v, done: false, by: val.who || "" }];
-    $(inputId).value = ""; saveList(key);
+    const it = { id: rid(), text: v, done: false, by: me || val.who || "" };
+    listState[key] = [...listState[key], it];
+    $(inputId).value = ""; listOp(key, { op: "add", id: it.id, text: v, by: it.by });
   };
+  // While the lists are open, pick up the other phone's changes every 20 seconds.
+  setInterval(() => { if (pass && !document.hidden && !$("p-lists").hidden) refresh().catch(() => {}); }, 20000);
   $("todoAdd").onclick = addTo("todos", "todoNew");
   $("shopAdd").onclick = addTo("shopping", "shopNew");
   $("todoNew").onkeydown = e => { if (e.key === "Enter") $("todoAdd").click(); };

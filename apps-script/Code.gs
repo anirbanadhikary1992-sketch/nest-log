@@ -2,7 +2,9 @@
  * The Nest Log — backend.
  * Lives in the Apps Script of the Google Sheet "Nest Log data" in Anirban's Drive.
  * Deploy: Deploy > New deployment > Web app, Execute as: Me, Who has access: Anyone.
- * Script properties (Project Settings > Script properties): PASSCODE (shared by both), OWNER_PIN (Anirban only).
+ * Script properties (Project Settings > Script properties): PASSCODE (shared by both), OWNER_PIN (Anirban), BINDU_PIN (Bindu).
+ * Sign-in emails live in the State tab, key "signin": {"emails":{"<email>":"Anirban","<email>":"Bindu"}}.
+ * They are never sent to the app and are not kept in this repo. With no "signin" row, the passcode alone opens the app.
  */
 
 const TABS = {
@@ -13,6 +15,8 @@ const TABS = {
   State: ["key", "json", "updatedAt"]
 };
 const LIST_KEYS = ["todos", "shopping"];
+const RULE_CHECKS = 3; // "I understand it", "I agree", "I'll follow it" — each of us ticks all three
+const HIDDEN_STATE = ["accounts", "signin"]; // never sent to the app
 const WHO = ["Bindu", "Anirban"];
 const SHOT_FOLDER_ID = "15mOeSSfHazt_4G7Qx49N_aXTPy9XZumH"; // Drive folder "Nest Log screenshots"
 const STARTER_RULES = [
@@ -47,6 +51,13 @@ function doPost(e) {
   try { req = JSON.parse(e.postData.contents); } catch (x) { return json_({ error: "bad_request" }); }
   const props = PropertiesService.getScriptProperties();
   if (!req.pass || req.pass !== props.getProperty("PASSCODE")) return json_({ error: "wrong_passcode" });
+  // Sign-in: email + shared passcode (approved by Anirban, 27 Oct 2026). Only the two emails in State "signin" are let in.
+  let me = "";
+  const signin = getState_("signin");
+  if (signin && signin.emails) {
+    me = signin.emails[String(req.email || "").trim().toLowerCase()] || "";
+    if (WHO.indexOf(me) < 0) return json_({ error: "wrong_email" });
+  }
   // Owner controls are open to both of us: OWNER_PIN (Anirban) or BINDU_PIN (Bindu). Both are script properties.
   const isOwner = !!req.ownerPin && (req.ownerPin === props.getProperty("OWNER_PIN") || req.ownerPin === props.getProperty("BINDU_PIN"));
   const d = req.data || {};
@@ -54,7 +65,7 @@ function doPost(e) {
   lock.waitLock(20000);
   try {
     switch (req.action) {
-      case "load": return json_(load_(isOwner));
+      case "load": return json_(load_(isOwner, me));
       case "addEntry": return json_(addEntry_(d, props));
       case "updateEntry": return json_(updateEntry_(d));
       case "setRules": setState_("rules", { items: cleanRules_(d.items) }); return json_({ ok: true });
@@ -65,6 +76,10 @@ function doPost(e) {
         return json_({ ok: true });
       case "dismissSuggestion": return json_(dismiss_(d));
       case "saveList": return json_(saveList_(d));
+      case "listOp": return json_(listOp_(d, me));
+      case "proposeRule": return json_(proposeRule_(d, me));
+      case "ruleTick": return json_(ruleTick_(d, me));
+      case "dropRule": return json_(dropRule_(d));
       case "setJournalPass": return json_(setJournalPass_(d));
       case "journalLoad": return json_(journalLoad_(d));
       case "journalAdd": return json_(journalAdd_(d));
@@ -74,7 +89,8 @@ function doPost(e) {
         const s = getState_("settings") || {}; s[d.key] = !!d.value; setState_("settings", s);
         return json_({ ok: true });
       case "decide":
-        if (!isOwner) return json_({ error: "owner_only" });
+        // Approve / Reject is open to anyone signed in with the passcode (approved by Anirban, 27 Oct 2026).
+        // The owner PIN still guards the pause switches above.
         if (["approved", "rejected"].indexOf(d.status) < 0) return json_({ error: "bad_request" });
         const p = getState_("proposal");
         if (!p || p.status !== "pending") return json_({ error: "nothing_pending" });
@@ -85,11 +101,11 @@ function doPost(e) {
   } finally { lock.releaseLock(); }
 }
 
-function load_(isOwner) {
+function load_(isOwner, me) {
   const state = {};
-  rows_("State").forEach(r => { if (r.key === "accounts") return; try { state[r.key] = JSON.parse(r.json); } catch (x) {} }); // never send journal password digests to the app
+  rows_("State").forEach(r => { if (HIDDEN_STATE.indexOf(r.key) >= 0) return; try { state[r.key] = JSON.parse(r.json); } catch (x) {} }); // never send password digests or sign-in emails to the app
   const entries = rows_("Entries").slice(-300).reverse().map(r => { const o = Object.assign({}, r); delete o.shotFile; o.shotPending = !!r.shotFile; return o; });
-  return { entries: entries, feedback: rows_("Feedback").slice(-200).reverse(), state: state, isOwner: isOwner };
+  return { entries: entries, feedback: rows_("Feedback").slice(-200).reverse(), state: state, isOwner: isOwner, me: me };
 }
 
 function addEntry_(d, props) {
@@ -107,7 +123,10 @@ function addEntry_(d, props) {
     e.shotFile = DriveApp.getFolderById(SHOT_FOLDER_ID).createFile(blob).getId();
   }
   SpreadsheetApp.getActive().getSheetByName("Entries").appendRow(TABS.Entries.map(k => e[k]));
-  setState_("logstatus_" + d.who, Object.assign({}, getState_("logstatus_" + d.who) || { remind: true }, { last: date }));
+  // "last" only moves forward, so writing yesterday's page today never undoes today's.
+  const ls = Object.assign({ remind: true }, getState_("logstatus_" + d.who) || {});
+  if (!ls.last || date > ls.last) ls.last = date;
+  setState_("logstatus_" + d.who, ls);
   return { ok: true, id: e.id };
 }
 
@@ -162,6 +181,66 @@ function saveList_(d) {
   })).filter(x => x.text);
   setState_(d.key, { items: items });
   return { ok: true };
+}
+
+// One change at a time, applied to the latest saved list, so two phones never overwrite each other.
+function listOp_(d, me) {
+  if (LIST_KEYS.indexOf(d.key) < 0) return { error: "bad_request" };
+  let items = ((getState_(d.key) || {}).items || []).slice();
+  if (d.op === "add") {
+    const t = String(d.text || "").trim().slice(0, 300);
+    if (!t) return { error: "bad_request" };
+    const by = WHO.indexOf(me) >= 0 ? me : (WHO.indexOf(d.by) >= 0 ? d.by : "");
+    if (items.length < 200) items.push({ id: String(d.id || Utilities.getUuid()).slice(0, 40), text: t, done: false, by: by });
+  } else if (d.op === "toggle") {
+    items = items.map(x => x.id === d.id ? Object.assign({}, x, { done: !!d.done }) : x);
+  } else if (d.op === "remove") {
+    items = items.filter(x => x.id !== d.id);
+  } else return { error: "bad_request" };
+  setState_(d.key, { items: items });
+  return { ok: true, items: items };
+}
+
+// New rules wait in "pendingRules" until both of us have ticked all three checks.
+function proposeRule_(d, me) {
+  const t = String(d.text || "").trim().slice(0, 300);
+  if (!t) return { error: "bad_request" };
+  const pend = (getState_("pendingRules") || {}).items || [];
+  if (pend.length >= 30) return { error: "too_many" };
+  const ticks = {}; WHO.forEach(w => ticks[w] = [false, false, false]);
+  pend.push({ id: Utilities.getUuid().slice(0, 12), text: t, source: d.source === "suggested" ? "suggested" : "manual",
+              replaces: String(d.replaces || "").slice(0, 40), by: WHO.indexOf(me) >= 0 ? me : (WHO.indexOf(d.who) >= 0 ? d.who : ""),
+              added: Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd"), ticks: ticks });
+  setState_("pendingRules", { items: pend });
+  return { ok: true, pending: pend };
+}
+function ruleTick_(d, me) {
+  const who = WHO.indexOf(me) >= 0 ? me : d.who;
+  const i = Number(d.i);
+  if (WHO.indexOf(who) < 0 || !(i >= 0 && i < RULE_CHECKS)) return { error: "bad_request" };
+  let pend = (getState_("pendingRules") || {}).items || [];
+  const it = pend.filter(x => x.id === d.id)[0];
+  if (!it) return { error: "not_found" };
+  it.ticks = it.ticks || {};
+  it.ticks[who] = (it.ticks[who] || [false, false, false]).slice(0, RULE_CHECKS);
+  it.ticks[who][i] = !!d.value;
+  let rules = (getState_("rules") || {}).items || [];
+  const agreed = WHO.every(w => (it.ticks[w] || []).filter(Boolean).length === RULE_CHECKS);
+  if (agreed) {
+    const r = { id: it.replaces || Utilities.getUuid().slice(0, 12), text: it.text, source: it.source, added: it.added };
+    if (it.replaces && rules.some(q => q.id === it.replaces)) rules = rules.map(q => q.id === it.replaces ? r : q);
+    else rules.push(r);
+    rules = cleanRules_(rules);
+    setState_("rules", { items: rules });
+    pend = pend.filter(x => x.id !== it.id);
+  }
+  setState_("pendingRules", { items: pend });
+  return { ok: true, agreed: agreed, pending: pend, rules: rules };
+}
+function dropRule_(d) {
+  const pend = ((getState_("pendingRules") || {}).items || []).filter(x => x.id !== d.id);
+  setState_("pendingRules", { items: pend });
+  return { ok: true, pending: pend };
 }
 
 // Private journal. Each of us sets a password; the journal is only returned with that password.
