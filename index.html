@@ -13,7 +13,7 @@ img{max-width:100%}
 [hidden]{display:none!important}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 </style>
-<title>The Nest Log</title>
+<title>The Nest</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Karla:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: a field journal on sage paper. Header = a nest that grows one twig per check-in.
@@ -163,12 +163,12 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
 <div class="wrap">
   <header class="masthead">
     <div>
-      <h1><svg class="d logo" aria-hidden="true"><use href="#nestegg"/></svg>The Nest Log</h1>
-      <p class="sub">Bindu &amp; Anirban · one page each, every evening<br><span class="hint">Today's colours: <span id="palName">Pond</span></span></p>
+      <h1><svg class="d logo" aria-hidden="true"><use href="#nestegg"/></svg>The Nest</h1>
+      <p class="sub">A space to grow together, one reflection at a time<br><span class="hint">Today's colours: <span id="palName">Pond</span></span></p>
     </div>
     <div class="nestbox">
       <canvas id="nest" width="340" height="224" aria-label="Our nest, one twig per check-in"></canvas>
-      <div class="nestcap" id="nestCap">Our nest starts with the first check-in</div>
+      <div class="nestcap" id="nestCap">Our nest grows with every reflection</div>
     </div>
   </header>
 
@@ -211,7 +211,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
         <div class="switch" id="remindWrap" hidden style="margin-top:10px"><input type="checkbox" id="remindMe"><label for="remindMe" style="margin:0;font-weight:500">Email me at 9:15 pm on nights I haven't written</label></div>
       </div>
       <div>
-        <span class="lbl">Weather between us today</span>
+        <span class="lbl">How we're feeling today</span>
         <div class="seg weather" id="mood">
           <button type="button" data-v="1"><svg class="d"><use href="#storm"/></svg>Stormy</button>
           <button type="button" data-v="2"><svg class="d"><use href="#rain"/></svg>Rainy</button>
@@ -221,21 +221,21 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
         </div>
       </div>
       <div>
-        <span class="lbl">Any fight or flare-up?</span>
-        <div class="seg" id="fight"><button type="button" data-v="none">None</button><button type="button" data-v="small">A small bump</button><button type="button" data-v="big">A big one</button></div>
+        <span class="lbl">Any tensions or moments to work through?</span>
+        <div class="seg" id="fight"><button type="button" data-v="none">None</button><button type="button" data-v="small">Small ones</button><button type="button" data-v="big">Bigger ones</button></div>
       </div>
       <div class="cond" id="fightBox" hidden>
-        <div><label for="f-trigger">What set it off? <span class="hint">Facts only, no blame</span></label><textarea id="f-trigger"></textarea></div>
-        <div><label for="f-felt">What I felt</label><textarea id="f-felt"></textarea></div>
-        <div><label for="f-needed">What I needed</label><textarea id="f-needed"></textarea></div>
-        <div><label for="f-change">What I'd do differently</label><textarea id="f-change"></textarea></div>
+        <div><label for="f-trigger">What happened <span class="hint">The facts</span></label><textarea id="f-trigger"></textarea></div>
+        <div><label for="f-felt">How I felt</label><textarea id="f-felt"></textarea></div>
+        <div><label for="f-needed">What I learned</label><textarea id="f-needed"></textarea></div>
+        <div><label for="f-change">What I'll do differently</label><textarea id="f-change"></textarea></div>
         <div>
           <span class="lbl">Did we use the pause signal?</span>
           <div class="seg" id="pause"><button type="button" data-v="yes">Yes</button><button type="button" data-v="no">No</button><button type="button" data-v="na">Didn't need it</button></div>
         </div>
       </div>
       <div>
-        <span class="lbl">From my apps <span class="hint">Optional. A screenshot from Flo, a sleep or fitness app. Claude reads the key details overnight, then the image is moved to trash.</span></span>
+        <span class="lbl">From my day <span class="hint">Optional. A screenshot from Flo, sleep tracker, fitness app, or anything that matters to you. Claude reads it overnight, then removes it.</span></span>
         <div class="row">
           <label class="btn small ghost" for="shotFile" style="margin:0">Add a screenshot</label>
           <input type="file" id="shotFile" accept="image/*" style="position:absolute;opacity:0;width:1px;height:1px">
@@ -251,7 +251,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
   <!-- RULES -->
   <section class="panel" id="p-rules" role="tabpanel" hidden>
     <div class="card">
-      <div><h2>Our ground rules</h2><p class="lead">Read these when things heat up. Change them together.</p></div>
+      <div><h2>How we care for each other</h2><p class="lead">Our shared agreements. Read them when things get hard, and change them together as you grow.</p></div>
       <ol class="rules" id="rulesList"><li class="empty">Rules are loading…</li></ol>
       <div class="row">
         <input type="text" id="newRule" placeholder="Add a rule we both agree on" style="flex:1;min-width:0">
@@ -291,7 +291,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
   <!-- JOURNAL (private to each of us, behind our own password) -->
   <section class="panel" id="p-journal" role="tabpanel" hidden>
     <div class="card" id="jGate">
-      <div><h2>Your private journal</h2><p class="lead">Only you can open yours, with your own password. Bindu and Anirban each have their own. Learning from mistakes lives here too.</p></div>
+      <div><h2>Your private journal</h2><p class="lead">Your space alone. Reflect, process, and grow at your own pace. No one can read this but you.</p></div>
       <div id="jWho" class="who seg"><button type="button" data-v="Bindu"><svg class="d"><use href="#duck"/></svg><span>Bindu</span></button><button type="button" data-v="Anirban"><svg class="d"><use href="#motorbike"/></svg><span>Anirban</span></button></div>
       <form id="jForm" class="cond">
         <div><label for="jPass">Your password <span class="hint">At least 6 characters. Forget it and it can't be recovered.</span></label><input type="password" id="jPass" autocomplete="off" style="width:100%"></div>
@@ -319,7 +319,7 @@ footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);pad
       <span class="status" id="propStatus"></span>
     </div>
     <div class="card">
-      <div><h2>Tell Claude what to change</h2><p class="lead">A question to add, something confusing, a feature you want. Claude reads new notes overnight and drafts an update. Anirban approves it before it goes live.</p></div>
+      <div><h2>Tell Claude what to change</h2><p class="lead">Something missing, confusing, or that could work better. Claude reads new notes overnight and drafts improvements. Anirban approves them before they go live.</p></div>
       <div><label for="fbText">Your note</label><textarea id="fbText" placeholder="e.g. Add a place to stick a photo of the day"></textarea></div>
       <div class="row"><button class="btn" id="fbSave">Send note</button><span class="status" id="fbStatus"></span></div>
     </div>
