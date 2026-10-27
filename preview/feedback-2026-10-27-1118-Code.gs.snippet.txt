@@ -1,0 +1,28 @@
+// DRAFT ONLY - not merged, not deployed. Owner approval required.
+// Add to the switch in doPost():
+//   case "updateEntry": return json_(updateEntry_(d));
+
+// Edits one Entries row. Only the writer named in d.who can edit a row they wrote.
+// Passcode check in doPost() is unchanged. Owner PIN / BINDU_PIN logic is unchanged.
+function updateEntry_(d) {
+  if (WHO.indexOf(d.who) < 0) return { error: "bad_request" };
+  const sh = SpreadsheetApp.getActive().getSheetByName("Entries");
+  const v = sh.getDataRange().getValues();
+  const h = v[0];
+  const idCol = h.indexOf("id"), whoCol = h.indexOf("who");
+  for (let i = 1; i < v.length; i++) {
+    if (v[i][idCol] !== d.id) continue;
+    if (v[i][whoCol] !== d.who) return { error: "not_yours" };
+    const row = h.map((k, j) => v[i][j]);   // copy; keeps id, date, createdAt, shotFile as they are
+    const mood = Number(d.mood);
+    if (mood >= 1 && mood <= 5) row[h.indexOf("mood")] = mood;
+    if (["none", "small", "big"].indexOf(d.fight) >= 0) row[h.indexOf("fight")] = d.fight;
+    if (["yes", "no", "na", ""].indexOf(d.pauseUsed) >= 0) row[h.indexOf("pauseUsed")] = d.pauseUsed;
+    TEXT_FIELDS.forEach(f => {
+      if (h.indexOf(f) >= 0 && d[f] !== undefined) row[h.indexOf(f)] = String(d[f]).slice(0, 4000);
+    });
+    sh.getRange(i + 1, 1, 1, h.length).setValues([row]);
+    return { ok: true };
+  }
+  return { error: "not_found" };
+}

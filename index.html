@@ -261,7 +261,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
       </div>
       <div><label for="f-appr">One thing I loved about you today</label><textarea id="f-appr"></textarea></div>
       <div><label for="f-other">Anything else on my mind <span class="hint">Optional</span></label><textarea id="f-other"></textarea></div>
-      <div class="row"><button class="btn" id="save">Add my twig to the nest</button><span id="sticker"></span><span class="status" id="saveStatus"></span></div>
+      <div class="row"><button class="btn" id="save">Add my twig to the nest</button><button class="btn" id="cancelEdit" type="button" hidden>Cancel edit</button><span id="sticker"></span><span class="status" id="saveStatus"></span></div>
     </div>
   </section>
 
@@ -414,7 +414,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
       val[id] = b.dataset.v; onChange && onChange(b.dataset.v);
     });
   }
-  seg("who", v => { store.set("who", v); showRemind(); });
+  seg("who", v => { store.set("who", v); showRemind(); renderHist(); });
   seg("mood"); seg("pause");
   seg("fight", v => { $("fightBox").hidden = v === "none"; });
 
@@ -610,6 +610,18 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
       trigger: none ? "" : $("f-trigger").value.trim(), felt: none ? "" : $("f-felt").value.trim(),
       needed: none ? "" : $("f-needed").value.trim(), change: none ? "" : $("f-change").value.trim(),
       pauseUsed: none ? "" : (val.pause || ""), appreciation: $("f-appr").value.trim(), other: $("f-other").value.trim(), shot };
+    if (editingId){
+      const fields = Object.assign({}, e, { id: editingId }); delete fields.date; delete fields.shot;
+      $("save").disabled = true; s.textContent = "Saving changes…";
+      try {
+        await call("updateEntry", fields);
+        s.textContent = "Page updated.";
+        stopEdit();
+        await refresh();
+      } catch(err){ s.textContent = err.error === "not_yours" ? "That page isn't yours to change." : "Couldn't save. Check your connection and try again. Your writing is still here."; }
+      finally { $("save").disabled = false; }
+      return;
+    }
     $("save").disabled = true; s.textContent = "Saving…";
     try {
       await call("addEntry", e);
@@ -621,6 +633,31 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     } catch(err){ s.textContent = "Couldn't save. Check your connection and try again. Your writing is still here."; }
     finally { $("save").disabled = false; }
   };
+
+  // ---- Editing your own earlier pages ----
+  let editingId = null;
+  function setSeg(id, v){ const b = $(id).querySelector(`[data-v="${v}"]`); if (b) b.click(); }
+  function startEdit(e){
+    editingId = e.id;
+    setSeg("mood", e.mood);
+    setSeg("fight", e.fight || "none");
+    if (e.pauseUsed) setSeg("pause", e.pauseUsed);
+    $("f-trigger").value = e.trigger || ""; $("f-felt").value = e.felt || "";
+    $("f-needed").value = e.needed || ""; $("f-change").value = e.change || "";
+    $("f-appr").value = e.appreciation || ""; $("f-other").value = e.other || "";
+    $("save").textContent = "Save changes";
+    $("cancelEdit").hidden = false;
+    $("saveStatus").textContent = "Editing your page from " + e.date + ".";
+    document.querySelector('.tab[data-p="p-today"]').click();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function stopEdit(){
+    editingId = null;
+    $("save").textContent = "Add my twig to the nest";
+    $("cancelEdit").hidden = true;
+    ["f-trigger","f-felt","f-needed","f-change","f-appr","f-other"].forEach(id => $(id).value = "");
+  }
+  $("cancelEdit").onclick = () => { stopEdit(); $("saveStatus").textContent = "Edit cancelled."; };
 
   // ---- Log ----
   function renderHist(){
@@ -652,6 +689,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
           const s = document.createElement("span"); s.className = "k"; s.textContent = emo + " " + k;
           wrap.append(s); paragraphs(wrap, e[f]); c.append(wrap);
         });
+        if (e.who === val.who){
+          const eb = document.createElement("button"); eb.type = "button"; eb.textContent = "Edit this page";
+          eb.style.cssText = "font:inherit;font-size:13px;align-self:flex-start;padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer";
+          eb.onclick = () => startEdit(e);
+          c.append(eb);
+        }
         if (e.shotPending && !e.context){ const p = document.createElement("p"); p.className = "k"; p.textContent = "Screenshot waiting to be read tonight."; c.append(p); }
         sec.append(c);
       });
