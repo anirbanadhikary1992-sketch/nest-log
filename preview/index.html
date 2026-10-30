@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cpath d=%22M32 8c-9 0-15 11-15 21 0 7 6 12 15 12s15-5 15-12C47 19 41 8 32 8z%22 fill=%22%23F6F1E3%22 stroke=%22%2386643F%22 stroke-width=%223%22/%3E%3Cpath d=%22M6 34c3 14 13 22 26 22s23-8 26-22%22 fill=%22%2386643F%22/%3E%3C/svg%3E">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh}
+img{max-width:100%}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+</style>
+<title>The Nest</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a field journal on sage paper. Header = a nest that grows one twig per check-in.
+   Taped paper cards below; her doodles (ducks, birds, cats, leaves, mandirs) and his (bikes, peaks, camera, controller). */
+/* Daily palette: script sets --h (paper hue) and --h2 (accent hue) from the date. Her teal and his amber stay fixed. */
+:root{
+  --h:172; --h2:150;
+  --paper:hsl(var(--h) 24% 92%); --card:hsl(var(--h) 30% 98%); --ink:hsl(var(--h) 20% 15%); --muted:hsl(var(--h) 10% 40%); --line:hsl(var(--h) 16% 81%);
+  --leaf:hsl(var(--h2) 45% 30%); --leaf-ink:#FFFFFF;
+  --her:hsl(176 48% 31%); --her-soft:hsl(170 38% 89%); --his:hsl(32 82% 36%); --his-soft:hsl(36 72% 88%);
+  --twig:hsl(32 36% 39%); --egg:hsl(45 50% 95%); --warn:#9A5B12; --warn-bg:#FBEFD9;
+  --hand:"Young Serif", Georgia, serif; --body:"Karla", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:hsl(var(--h) 18% 9%); --card:hsl(var(--h) 16% 13%); --ink:hsl(var(--h) 18% 90%); --muted:hsl(var(--h) 8% 64%); --line:hsl(var(--h) 12% 24%);
+  --leaf:hsl(var(--h2) 45% 68%); --leaf-ink:hsl(var(--h2) 40% 10%);
+  --her:hsl(174 40% 63%); --her-soft:hsl(174 30% 18%); --his:hsl(33 74% 63%); --his-soft:hsl(33 40% 17%);
+  --twig:hsl(33 34% 58%); --egg:hsl(45 30% 88%); --warn:#E6B677; --warn-bg:#3A2C18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:hsl(var(--h) 18% 9%); --card:hsl(var(--h) 16% 13%); --ink:hsl(var(--h) 18% 90%); --muted:hsl(var(--h) 8% 64%); --line:hsl(var(--h) 12% 24%);
+  --leaf:hsl(var(--h2) 45% 68%); --leaf-ink:hsl(var(--h2) 40% 10%);
+  --her:hsl(174 40% 63%); --her-soft:hsl(174 30% 18%); --his:hsl(33 74% 63%); --his-soft:hsl(33 40% 17%);
+  --twig:hsl(33 34% 58%); --egg:hsl(45 30% 88%); --warn:#E6B677; --warn-bg:#3A2C18; color-scheme:dark}
+
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 48px;
+  background-image:radial-gradient(color-mix(in srgb, var(--line) 55%, transparent) 1px, transparent 1.2px);background-size:22px 22px}
+.wrap{max-width:660px;margin:0 auto;display:flex;flex-direction:column;gap:22px;animation:fadeIn .6s ease both}
+svg.d{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* Header */
+.masthead{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+h1{font-family:var(--hand);font-weight:400;font-size:40px;line-height:1;margin:0;letter-spacing:-.5px;display:flex;align-items:center;gap:10px}
+svg.d.logo{width:52px;height:52px;color:var(--twig);stroke-width:2.4}
+.sub{color:var(--muted);margin:6px 0 0;font-size:15px}
+.nestbox{display:flex;flex-direction:column;align-items:center;gap:2px}
+#nest{width:170px;height:112px;display:block;max-width:100%}
+.nestcap{font-size:13px;color:var(--muted);text-align:center}
+@media (max-width:440px){.masthead{grid-template-columns:1fr}.nestbox{order:-1}h1{font-size:38px}}
+.doodles{display:flex;flex-wrap:nowrap;gap:6px 14px;align-items:center;justify-content:space-between;padding:8px 2px;border-top:1.5px dashed var(--line);border-bottom:1.5px dashed var(--line)}
+.doodles .side{display:flex;gap:clamp(4px,1.8vw,10px);flex-wrap:nowrap}
+.doodles svg.d{width:min(28px,6.2vw);height:min(28px,6.2vw)} /* one line on every phone width */
+.doodles .her{color:var(--her)} .doodles .his{color:var(--his)}
+.doodles svg{transition:transform .3s ease,color .3s ease}
+.doodles svg:hover{transform:scale(1.25) rotate(-8deg);animation:float 2s ease-in-out infinite}
+
+/* Tabs as handwritten bookmarks */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.tab{font-family:var(--body);font-weight:600;font-size:14px;white-space:nowrap;background:transparent;border:1.5px solid var(--line);border-radius:999px;padding:4px 14px;color:var(--muted);cursor:pointer;transition:background .2s ease,color .2s ease,border-color .2s ease,transform .15s ease}
+.tab:hover{transform:scale(1.04)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+.panel{display:flex;flex-direction:column;gap:26px;animation:tabIn .35s ease both}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:26px 20px 20px;display:flex;flex-direction:column;gap:18px;box-shadow:0 1px 0 var(--line),0 6px 14px -10px color-mix(in srgb, var(--ink) 40%, transparent);animation:fadeUp .5s ease both;transition:box-shadow .2s ease,transform .2s ease}
+.card:hover{box-shadow:0 2px 0 var(--line),0 10px 22px -8px color-mix(in srgb, var(--ink) 28%, transparent);transform:translateY(-1px)}
+.card::before{content:"";position:absolute;top:-9px;left:50%;width:84px;height:18px;transform:translateX(-50%) rotate(-2.5deg);background:color-mix(in srgb, var(--her) 30%, transparent);border-radius:1px}
+.panel > .card:nth-child(even)::before{background:color-mix(in srgb, var(--his) 32%, transparent);transform:translateX(-30%) rotate(2deg)}
+.panel > .card:nth-child(1){animation-delay:.05s}
+.panel > .card:nth-child(2){animation-delay:.12s}
+.panel > .card:nth-child(3){animation-delay:.19s}
+.panel > .card:nth-child(4){animation-delay:.26s}
+.panel > .card:nth-child(5){animation-delay:.33s}
+h2{font-family:var(--hand);font-weight:400;font-size:23px;line-height:1.15;margin:0;text-wrap:balance}
+.lead{color:var(--muted);margin:2px 0 0}
+label,.lbl{font-weight:700;font-size:14px;display:block;margin-bottom:8px}
+.hint{font-weight:400;color:var(--muted);font-size:13px}
+textarea,input[type=text]{width:100%;box-sizing:border-box;font:inherit;color:var(--ink);background:transparent;border:0;border-bottom:1.5px solid var(--line);border-radius:0;padding:6px 2px;
+  background-image:repeating-linear-gradient(transparent 0 27px, color-mix(in srgb, var(--line) 70%, transparent) 27px 28px);line-height:28px}
+textarea{min-height:58px;resize:vertical}
+textarea:focus,input[type=text]:focus{border-bottom-color:var(--leaf);outline:none}
+
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{font:inherit;font-size:14px;padding:7px 13px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.seg button[aria-pressed="true"]{background:var(--leaf);color:var(--leaf-ink);border-color:var(--leaf)}
+.weather svg.d{width:20px;height:20px}
+
+/* Who stickers */
+.who{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.who button{font:inherit;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:1.5px dashed var(--line);background:transparent;color:var(--ink);cursor:pointer;text-align:left}
+.who button span{font-family:var(--hand);font-size:18px}
+.who button[data-v="Bindu"]{color:var(--her)} .who button[data-v="Anirban"]{color:var(--his)}
+.who button[data-v="Bindu"][aria-pressed="true"]{background:var(--her-soft);border-style:solid;border-color:var(--her)}
+.who button[data-v="Anirban"][aria-pressed="true"]{background:var(--his-soft);border-style:solid;border-color:var(--his)}
+.who button span{color:var(--ink)}
+
+.btn{font:inherit;font-weight:700;padding:10px 18px;border-radius:999px;border:1.5px solid var(--leaf);background:var(--leaf);color:var(--leaf-ink);cursor:pointer;transition:transform .15s ease,opacity .15s ease}
+.btn:hover:not(:disabled){transform:scale(1.04)}
+.btn:active:not(:disabled){transform:scale(.96)}
+.btn.ghost{background:transparent;color:var(--leaf)}
+.btn.small{padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--leaf);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.status{font-size:14px;color:var(--muted);min-height:1.2em}
+.sticker{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--card);border:1.5px solid var(--line);animation:pop .5s ease-out}
+@keyframes pop{0%{transform:scale(.3) rotate(-25deg);opacity:0}70%{transform:scale(1.15) rotate(6deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes tabIn{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes breathe{0%,100%{opacity:.7}50%{opacity:1}}
+
+/* Rules */
+.rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rules li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1.5px dashed var(--line)}
+.rules li:first-child{border-top:0}
+.rules .num{font-family:var(--hand);font-weight:400;color:var(--leaf);font-size:21px;line-height:1;min-width:24px;font-variant-numeric:tabular-nums}
+.rules .txt{flex:1;min-width:0;font-size:16px}
+.tag{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;font-size:13px;padding:2px 4px;text-decoration:underline dotted}
+.sugg{display:flex;flex-direction:column;gap:12px}
+.sitem{border:1.5px dashed var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.sitem .why{color:var(--muted);font-size:13px}
+.notice{background:var(--warn-bg);color:var(--ink);padding:12px 14px;border-radius:8px;font-size:14px;border:1px solid var(--warn)}
+
+/* Log */
+.day{display:flex;flex-direction:column;gap:10px}
+.day h3{margin:0;font-family:var(--hand);font-size:18px;font-weight:400}
+.day h3 small{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-left:8px}
+.entry{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.entry.her{background:color-mix(in srgb, var(--her-soft) 55%, var(--card))}
+.entry.his{background:color-mix(in srgb, var(--his-soft) 55%, var(--card))}
+.entry.framed{border:2px solid var(--line);box-shadow:inset 0 0 0 5px var(--card),inset 0 0 0 6px var(--line);padding:18px;gap:8px}
+.entry.framed p{white-space:pre-wrap}
+.rules .txt p{margin:0}
+.entry .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.whoTag{display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px}
+.whoTag.her svg{color:var(--her)} .whoTag.his svg{color:var(--his)}
+.pill{font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.pill.big{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+.entry p{margin:0}.entry .k{color:var(--muted);font-size:13px;font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:20px 8px;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.empty svg.d{width:40px;height:40px;color:var(--her)}
+.strip{display:flex;gap:4px;align-items:flex-end;height:44px}
+.strip span{flex:1;background:var(--leaf);opacity:.8;border-radius:3px 3px 0 0;min-width:4px}
+.switch{display:flex;align-items:center;gap:8px;font-size:14px}
+footer{font-size:13px;color:var(--muted);border-top:1.5px dashed var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-delay:.4s;opacity:0;animation-fill-mode:forwards}
+.cond{display:flex;flex-direction:column;gap:16px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="duck" viewBox="0 0 48 48"><path d="M7 31c0 6 7 10 16 10s17-4 17-11c0-3-2-5-5-5h-6c1-6-2-12-9-12-6 0-9 4-9 9 0 2 1 4 2 5-4 0-6 1-6 4z"/><path d="M27 17l7 1-7 3"/><circle cx="20" cy="17" r="1" fill="currentColor"/><path d="M3 45c4-2 8-2 12 0s8 2 12 0 8-2 12 0"/></symbol>
+  <symbol id="bird" viewBox="0 0 48 48"><path d="M6 27c6-1 10-8 18-8 6 0 10 3 12 7l7-1-5 5c-2 6-8 9-15 9-8 0-14-5-17-12z"/><path d="M17 29c5 1 9-1 11-5"/><circle cx="33" cy="24" r="1" fill="currentColor"/><path d="M22 39l-2 5M27 39l1 5"/></symbol>
+  <symbol id="cat" viewBox="0 0 48 48"><path d="M13 20l2-10 6 6h6l6-6 2 10c2 4 2 8 0 11-2 4-6 6-11 6s-9-2-11-6c-2-3-2-7 0-11z"/><circle cx="19" cy="24" r="1.2" fill="currentColor"/><circle cx="29" cy="24" r="1.2" fill="currentColor"/><path d="M22 28l2 2 2-2M10 27h6M10 31l6-1M38 27h-6M38 31l-6-1"/></symbol>
+  <symbol id="leaf" viewBox="0 0 48 48"><path d="M9 41C19 31 27 21 38 7"/><path d="M17 32c-6-1-9-6-8-11 5 1 8 6 8 11zM24 24c6 0 10-4 10-10-6 0-10 4-10 10zM29 17c-5-2-7-7-5-12 5 2 7 7 5 12z"/></symbol>
+  <symbol id="mandir" viewBox="0 0 48 48"><path d="M7 43h34M10 43v-4h28v4M14 39V27h20v12M21 39v-6a3 3 0 016 0v6M15 27c0-8 4-14 9-19 5 5 9 11 9 19M24 8V3l6 2-6 2"/></symbol>
+  <symbol id="bike" viewBox="0 0 48 48"><circle cx="11" cy="33" r="7"/><circle cx="37" cy="33" r="7"/><path d="M11 33l8-11h11l7 11M19 22l5 11H11M30 22l-3-6h-5M27 16h6"/></symbol>
+  <symbol id="motorbike" viewBox="0 0 48 48"><circle cx="11" cy="32" r="6.5"/><circle cx="37" cy="32" r="6.5"/><path d="M11 32h7l5-8h8l4 8M24 24l-3-7h-4M20 17h-3M30 24l3-9h4l2 3"/><path d="M24 24h-2M29 16l-3 3"/></symbol>
+  <symbol id="food" viewBox="0 0 48 48"><path d="M7 24h34c0 9-7 15-17 15S7 33 7 24z"/><path d="M12 42h24M18 12c-2 2-2 4 0 6M24 9c-2 2-2 4 0 6M30 12c-2 2-2 4 0 6"/></symbol>
+  <symbol id="peak" viewBox="0 0 48 48"><path d="M3 41l14-23 8 12 6-8 14 19z"/><path d="M13 25l4 3 4-4"/><circle cx="37" cy="10" r="4"/></symbol>
+  <symbol id="camera" viewBox="0 0 48 48"><path d="M8 15h8l3-4h10l3 4h8a2 2 0 012 2v19a2 2 0 01-2 2H8a2 2 0 01-2-2V17a2 2 0 012-2z"/><circle cx="24" cy="26" r="7"/><circle cx="24" cy="26" r="2.5"/></symbol>
+  <symbol id="pad" viewBox="0 0 48 48"><path d="M14 17h20c6 0 9 6 10 14 1 5-4 8-8 4l-4-4H16l-4 4c-4 4-9 1-8-4 1-8 4-14 10-14z"/><path d="M14 22v7M10.5 25.5h7"/><circle cx="32" cy="23" r="1.4" fill="currentColor"/><circle cx="36" cy="27" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="storm" viewBox="0 0 48 48"><path d="M14 30h20a8 8 0 000-16 11 11 0 00-21 3 7 7 0 001 13z"/><path d="M24 30l-4 7h6l-4 7"/></symbol>
+  <symbol id="rain" viewBox="0 0 48 48"><path d="M14 28h20a8 8 0 000-16 11 11 0 00-21 3 7 7 0 001 13z"/><path d="M17 33l-2 5M25 33l-2 5M33 33l-2 5"/></symbol>
+  <symbol id="cloud" viewBox="0 0 48 48"><path d="M14 34h20a8 8 0 000-16 11 11 0 00-21 3 7 7 0 001 13z"/></symbol>
+  <symbol id="partsun" viewBox="0 0 48 48"><circle cx="18" cy="17" r="6"/><path d="M18 5v3M7 17H4M10 9l2 2M26 9l-2 2"/><path d="M18 37h18a7 7 0 000-14 9 9 0 00-17 3 6 6 0 00-1 11z"/></symbol>
+  <symbol id="nestegg" viewBox="0 0 64 64"><path d="M32 8c-9 0-15 11-15 21 0 7 6 12 15 12s15-5 15-12C47 19 41 8 32 8z" fill="var(--egg)"/><path d="M27 18c-2 2-3 5-3 8" stroke-width="1.6" opacity=".6"/><path d="M6 34c3 14 13 22 26 22s23-8 26-22" fill="var(--card)"/><path d="M6 34c8 4 17 6 26 6s18-2 26-6M10 42c7 3 15 4 22 4s15-1 22-4M15 50c5 2 11 3 17 3s12-1 17-3M12 36l6 10M24 39l2 12M40 39l-2 12M52 36l-6 10"/></symbol>
+  <symbol id="sun" viewBox="0 0 48 48"><circle cx="24" cy="24" r="8"/><path d="M24 6v5M24 37v5M6 24h5M37 24h5M11 11l3.5 3.5M33.5 33.5L37 37M37 11l-3.5 3.5M14.5 33.5L11 37"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <h1><svg class="d logo" aria-hidden="true"><use href="#nestegg"/></svg>The Nest</h1>
+      <p class="sub">A space to grow together, one reflection at a time<br><span class="hint">Today's colours: <span id="palName">Pond</span></span></p>
+    </div>
+    <div class="nestbox">
+      <canvas id="nest" width="340" height="224" aria-label="Our nest, one twig per check-in"></canvas>
+      <div class="nestcap" id="nestCap">Our nest grows with every reflection</div>
+    </div>
+  </header>
+
+  <div class="doodles" aria-hidden="true">
+    <div class="side her"><svg class="d"><use href="#duck"/></svg><svg class="d"><use href="#bird"/></svg><svg class="d"><use href="#cat"/></svg><svg class="d"><use href="#leaf"/></svg><svg class="d"><use href="#mandir"/></svg></div>
+    <div class="side his"><svg class="d"><use href="#motorbike"/></svg><svg class="d"><use href="#peak"/></svg><svg class="d"><use href="#camera"/></svg><svg class="d"><use href="#pad"/></svg><svg class="d"><use href="#food"/></svg></div>
+  </div>
+
+  <!-- PASSCODE GATE -->
+  <section class="panel" id="gate" hidden>
+    <div class="card">
+      <div><h2>Welcome to our nest</h2><p class="lead">Sign in with your email and the passcode you both share. This phone will remember them.</p></div>
+      <form id="gateForm" style="display:flex;flex-direction:column;gap:10px">
+        <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="Your email" style="width:100%">
+        <div class="row">
+          <input type="password" id="pass" autocomplete="current-password" placeholder="Passcode" style="flex:1;min-width:0">
+          <button class="btn" type="submit">Open</button>
+        </div>
+      </form>
+      <span class="status" id="gateStatus"></span>
+    </div>
+  </section>
+
+  <div id="app" hidden style="display:flex;flex-direction:column;gap:22px">
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-p="p-today">Common Journal</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="p-rules">Our rules</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="p-hist">The log</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="p-lists">To-dos &amp; shopping</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="p-journal">Personal Journal</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="p-fb">Feedback</button>
+  </nav>
+
+  <!-- TODAY -->
+  <section class="panel" id="p-today" role="tabpanel">
+    <div class="card">
+      <div>
+        <span class="lbl" id="whoLbl">Who's writing tonight?</span>
+        <div class="who seg" id="who">
+          <button type="button" data-v="Bindu"><svg class="d"><use href="#duck"/></svg><span>Bindu</span></button>
+          <button type="button" data-v="Anirban"><svg class="d"><use href="#motorbike"/></svg><span>Anirban</span></button>
+        </div>
+        <div class="seg" id="dayPick" style="margin-top:10px"><button type="button" data-v="0" aria-pressed="true">Today</button><button type="button" data-v="1" aria-pressed="false">Yesterday (d-1)</button></div>
+        <div class="switch" id="remindWrap" hidden style="margin-top:10px"><input type="checkbox" id="remindMe"><label for="remindMe" style="margin:0;font-weight:500">Email me at 9:15 pm on nights I haven't written</label></div>
+      </div>
+      <div>
+        <span class="lbl">How we're feeling today</span>
+        <div class="seg weather" id="mood">
+          <button type="button" data-v="1"><svg class="d"><use href="#storm"/></svg>Stormy</button>
+          <button type="button" data-v="2"><svg class="d"><use href="#rain"/></svg>Rainy</button>
+          <button type="button" data-v="3"><svg class="d"><use href="#cloud"/></svg>Cloudy</button>
+          <button type="button" data-v="4"><svg class="d"><use href="#partsun"/></svg>Bright</button>
+          <button type="button" data-v="5"><svg class="d"><use href="#sun"/></svg>Sunny</button>
+        </div>
+      </div>
+      <div>
+        <span class="lbl">Any tensions or moments to work through?</span>
+        <div class="seg" id="fight"><button type="button" data-v="none">None</button><button type="button" data-v="small">Small ones</button><button type="button" data-v="big">Bigger ones</button></div>
+      </div>
+      <div class="cond" id="fightBox" hidden>
+        <div><label for="f-trigger">What happened <span class="hint">The facts</span></label><textarea id="f-trigger"></textarea></div>
+        <div><label for="f-felt">How I felt</label><textarea id="f-felt"></textarea></div>
+        <div><label for="f-needed">What I learned</label><textarea id="f-needed"></textarea></div>
+        <div><label for="f-change">What I'll do differently</label><textarea id="f-change"></textarea></div>
+        <div>
+          <span class="lbl">Did we use the pause signal?</span>
+          <div class="seg" id="pause"><button type="button" data-v="yes">Yes</button><button type="button" data-v="no">No</button><button type="button" data-v="na">Didn't need it</button></div>
+        </div>
+      </div>
+      <div>
+        <span class="lbl">From my day <span class="hint">Optional. A screenshot from Flo, sleep tracker, fitness app, or anything that matters to you. Claude reads it overnight, then removes it.</span></span>
+        <div class="row">
+          <label class="btn small ghost" for="shotFile" style="margin:0">Add a screenshot</label>
+          <input type="file" id="shotFile" accept="image/*" style="position:absolute;opacity:0;width:1px;height:1px">
+          <span class="status" id="shotStatus"></span>
+        </div>
+      </div>
+      <div><label for="f-appr">One thing I loved about you today</label><textarea id="f-appr"></textarea></div>
+      <div><label for="f-other">Anything else on my mind <span class="hint">Optional</span></label><textarea id="f-other"></textarea></div>
+      <div class="row"><button class="btn" id="save">Add my twig to the nest</button><button class="btn" id="cancelEdit" type="button" hidden>Cancel edit</button><span id="sticker"></span><span class="status" id="saveStatus"></span></div>
+    </div>
+  </section>
+
+  <!-- RULES -->
+  <section class="panel" id="p-rules" role="tabpanel" hidden>
+    <div class="card">
+      <div><h2>How we care for each other</h2><p class="lead">Our shared agreements. Read them when things get hard, and change them together as you grow.</p></div>
+      <ol class="rules" id="rulesList"><li class="empty">Rules are loading…</li></ol>
+      <div class="row">
+        <input type="text" id="newRule" placeholder="Suggest a rule for us both to agree on" style="flex:1;min-width:0">
+        <button class="btn small" id="addRule">Suggest</button>
+      </div>
+      <span class="status" id="ruleStatus"></span>
+    </div>
+    <div class="card" id="pendCard" hidden>
+      <div><h2>Waiting for both of us</h2><p class="lead">A rule joins the book only when each of us has ticked all three: I understand it, I agree, I'll follow it.</p></div>
+      <div class="sugg" id="pendList"></div>
+    </div>
+    <div class="card">
+      <div><h2>Let the rules grow</h2><p class="lead">Every night Claude reads the last 14 days of the log and suggests rules to add, reword or retire. Nothing changes unless you accept it.</p></div>
+      <div class="sugg" id="sugg"><p class="status">No suggestions yet. They appear the morning after you've both written a few pages.</p></div>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <section class="panel" id="p-hist" role="tabpanel" hidden>
+    <div class="card" id="trendCard" hidden>
+      <span class="lbl">Weather over the last 14 days</span>
+      <div class="strip" id="strip"></div>
+    </div>
+    <div id="hist" style="display:flex;flex-direction:column;gap:20px"><div class="empty"><svg class="d"><use href="#bird"/></svg>No pages yet. Write tonight's on the first tab.</div></div>
+  </section>
+
+  <!-- LISTS (shared by both) -->
+  <section class="panel" id="p-lists" role="tabpanel" hidden>
+    <div class="card">
+      <div><h2>To-dos for both of us</h2><p class="lead">Either of us can add, tick or remove.</p></div>
+      <ul class="rules" id="todoList"></ul>
+      <div class="row"><input type="text" id="todoNew" placeholder="Add a to-do" style="flex:1;min-width:0"><button class="btn small" id="todoAdd">Add</button></div>
+    </div>
+    <div class="card">
+      <div><h2>Shopping list</h2><p class="lead">Add it when you run out. Tick it off at the shop.</p></div>
+      <ul class="rules" id="shopList"></ul>
+      <div class="row"><input type="text" id="shopNew" placeholder="Add an item" style="flex:1;min-width:0"><button class="btn small" id="shopAdd">Add</button></div>
+    </div>
+    <span class="status" id="listStatus"></span>
+  </section>
+
+  <!-- JOURNAL (private to each of us, behind our own password) -->
+  <section class="panel" id="p-journal" role="tabpanel" hidden>
+    <div class="card" id="jGate">
+      <div><h2>Personal Journal</h2><p class="lead">Your space alone. Reflect, process, and grow at your own pace. No one can read this but you.</p></div>
+      <div id="jWho" class="who seg"><button type="button" data-v="Bindu"><svg class="d"><use href="#duck"/></svg><span>Bindu</span></button><button type="button" data-v="Anirban"><svg class="d"><use href="#motorbike"/></svg><span>Anirban</span></button></div>
+      <form id="jForm" class="cond">
+        <div><label for="jPass">Your password <span class="hint">At least 6 characters. Forget it and it can't be recovered.</span></label><input type="password" id="jPass" autocomplete="off" style="width:100%"></div>
+        <div id="jNewWrap" hidden><label for="jOld">Current password (only to change it)</label><input type="password" id="jOld" autocomplete="off" style="width:100%"></div>
+        <div class="row"><button class="btn small" type="submit" id="jOpen">Open my journal</button><button class="btn small ghost" type="button" id="jSet">Set / change password</button></div>
+      </form>
+      <span class="status" id="jStatus"></span>
+    </div>
+    <div class="card" id="jBody" hidden>
+      <div class="row" style="justify-content:space-between"><span class="lbl" id="jTitle" style="margin:0">Journal</span><button class="x" id="jLock" type="button">Lock journal</button></div>
+      <textarea id="jText" placeholder="What happened, what I learned, what I'll do differently…" style="min-height:120px"></textarea>
+      <div class="row"><button class="btn small" id="jSave">Add to my journal</button><span class="status" id="jSaveStatus"></span></div>
+      <div id="jEntries" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+  </section>
+
+  <!-- FEEDBACK -->
+  <section class="panel" id="p-fb" role="tabpanel" hidden>
+    <div class="card" id="propCard" hidden>
+      <div><span class="tag">Overnight update ready</span><h2 style="margin-top:4px">Changes waiting for approval</h2></div>
+      <p id="propSummary" style="margin:0"></p>
+      <ul id="propList" style="margin:0;padding-left:18px"></ul>
+      <p id="propPreview" style="margin:0" hidden><a id="propLink" target="_blank" rel="noopener">Try the preview</a> <span class="hint">(uses your real pages, so test gently)</span></p>
+      <div class="row" id="propActions"><button class="btn" id="propYes">Approve</button><button class="btn ghost" id="propNo">Reject</button></div>
+      <span class="status" id="propStatus"></span>
+    </div>
+    <div class="card">
+      <div><h2>Tell Claude what to change</h2><p class="lead">Something missing, confusing, or that could work better. Claude reads new notes overnight and drafts improvements. Either of us can approve them before they go live.</p></div>
+      <div><label for="fbText">Your note</label><textarea id="fbText" placeholder="e.g. Add a place to stick a photo of the day"></textarea></div>
+      <div class="row"><button class="btn" id="fbSave">Send note</button><span class="status" id="fbStatus"></span></div>
+    </div>
+    <div class="card">
+      <span class="lbl">Notes so far</span>
+      <div id="fbList" style="display:flex;flex-direction:column;gap:10px"><div class="empty">No notes yet.</div></div>
+    </div>
+    <div class="card">
+      <div><h2>Controls</h2><p class="lead" id="ownerLead">Pause switches.</p></div>
+      <form id="pinForm" class="row">
+        <input type="password" id="pin" autocomplete="off" placeholder="Owner PIN" style="flex:1;min-width:0">
+        <button class="btn small" type="submit">Unlock</button>
+      </form>
+      <div id="ownerControls" hidden style="display:flex;flex-direction:column;gap:10px">
+        <div class="switch"><input type="checkbox" id="aiPaused"><label for="aiPaused" style="margin:0;font-weight:500">Pause rule suggestions and screenshot reading</label></div>
+        <div class="switch"><input type="checkbox" id="nightPaused"><label for="nightPaused" style="margin:0;font-weight:500">Pause overnight updates and emails</label></div>
+        <div class="switch"><input type="checkbox" id="remPaused"><label for="remPaused" style="margin:0;font-weight:500">Pause reminder emails for both of us</label></div>
+      </div>
+      <button class="x" id="forget" type="button" style="align-self:flex-start">Sign out of this phone</button>
+    </div>
+  </section>
+  </div>
+
+  <footer>
+    <span id="dailyWord"></span>
+  </footer>
+</div>
+
+<script>
+// ===== Settings =====
+const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThRbdR-eANChnbzND-wtH2fg4JBcotg7IsF5qy1T59jGhiBZg/exec";
+// ====================
+
+(() => {
+  const $ = id => document.getElementById(id);
+  const today = () => new Date().toLocaleDateString("en-CA");
+  let dayOffset = 0; // 0 = today, 1 = yesterday (d-1)
+  const logDate = () => { const d = new Date(); d.setDate(d.getDate() - dayOffset); return d.toLocaleDateString("en-CA"); };
+  const MOOD = {1:"Stormy",2:"Rainy",3:"Cloudy",4:"Bright",5:"Sunny"};
+  const MOODEM = {1:"⛈️",2:"🌧️",3:"☁️",4:"🌤️",5:"☀️"};
+  const ICON = { Bindu:"duck", Anirban:"motorbike" };
+  const side = w => w === "Bindu" ? "her" : "his";
+  const icon = name => { const s = document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("class","d"); const u = document.createElementNS("http://www.w3.org/2000/svg","use"); u.setAttribute("href","#"+name); s.append(u); return s; };
+  const store = { get(k){ try { return localStorage.getItem(k) } catch(e){ return null } }, set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v) } catch(e){} } };
+
+  // Daily palette
+  const PALETTES = [["Pond",172,190],["Marigold",40,28],["Monsoon",130,150],["Himalaya",208,222],["Lotus",340,326],["Dusk ride",262,284],["Desert trail",30,18]];
+  { const n = new Date(); const day = Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / 864e5);
+    const [name, h, h2] = PALETTES[day % PALETTES.length];
+    const rs = document.documentElement.style; rs.setProperty("--h", h); rs.setProperty("--h2", h2); $("palName").textContent = name; }
+  const probe = document.createElement("span"); probe.hidden = true; document.body.append(probe);
+  const resolveColor = name => { probe.style.color = `var(${name})`; return getComputedStyle(probe).color; };
+
+  // ---- API ----
+  let pass = store.get("nest-pass") || "", pin = store.get("nest-pin") || "", email = store.get("nest-email") || "";
+  async function call(action, data = {}){
+    const r = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, data, pass, email, ownerPin: pin }) });
+    const j = await r.json();
+    if (j.error) throw j;
+    return j;
+  }
+
+  // ---- State ----
+  let entries = [], feedback = [], rules = [], st = {}, isOwner = false, me = "";
+  const val = {};
+
+  // Tabs
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+    document.querySelectorAll(".tab").forEach(x => { x.setAttribute("aria-selected", x===t); $(x.dataset.p).hidden = x!==t; });
+    if (t.dataset.p === "p-lists" || t.dataset.p === "p-rules") refresh().catch(() => {}); // fresh lists and rules from the other phone
+  });
+
+  // Segmented controls
+  function seg(id, onChange){
+    const el = $(id);
+    el.querySelectorAll("button").forEach(b => b.onclick = () => {
+      el.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x===b));
+      val[id] = b.dataset.v; onChange && onChange(b.dataset.v);
+    });
+  }
+  seg("who", v => { store.set("who", v); showRemind(); renderHist(); });
+  seg("mood"); seg("pause");
+  seg("dayPick", v => { dayOffset = Number(v) || 0; });
+  seg("fight", v => { $("fightBox").hidden = v === "none"; });
+
+  // ---- Gate ----
+  $("gateForm").onsubmit = async ev => {
+    ev.preventDefault();
+    email = $("email").value.trim().toLowerCase(); pass = $("pass").value.trim();
+    if (!email) { $("gateStatus").textContent = "Enter your email."; return; }
+    if (!pass) return;
+    $("gateStatus").textContent = "Opening…";
+    try { await refresh(); store.set("nest-pass", pass); store.set("nest-email", email); $("gate").hidden = true; $("app").hidden = false; $("gateStatus").textContent = ""; pickMe(); }
+    catch(e){ $("gateStatus").textContent = e.error === "wrong_passcode" ? "That passcode didn't work." : e.error === "wrong_email" ? "That email isn't one of ours." : "Couldn't reach the nest. Check your connection."; pass = ""; }
+  };
+  $("forget").onclick = () => { store.set("nest-pass", null); store.set("nest-pin", null); store.set("nest-email", null); location.reload(); };
+  // The signed-in person writes as themselves by default.
+  // Signed in by email: you always write as yourself, so the name pickers are hidden (feedback 30 Oct 2026).
+  function pickMe(){
+    if (!me) return;
+    store.set("who", me);
+    const b = $("who").querySelector(`[data-v="${me}"]`); if (b) b.click();
+    const j = $("jWho").querySelector(`[data-v="${me}"]`); if (j) j.click();
+    $("who").hidden = true; $("jWho").hidden = true;
+    $("whoLbl").textContent = "Writing as " + me;
+  }
+  $("email").value = email;
+
+  async function boot(){
+    if (API_URL.startsWith("PASTE")) { $("gate").hidden = false; $("gateStatus").textContent = "The app isn't connected to its Google Sheet yet."; return; }
+    if (!pass) { $("gate").hidden = false; return; }
+    try { const cached = JSON.parse(store.get("nest-rules") || "null"); if (Array.isArray(cached)) { rules = cached; renderRules(); } } catch(e){}
+    try { await refresh(); $("app").hidden = false; }
+    catch(e){ $("gate").hidden = false;
+      if (e.error === "wrong_passcode") store.set("nest-pass", null);
+      else if (e.error === "wrong_email") $("gateStatus").textContent = "Sign in with your email to continue.";
+      else $("gateStatus").textContent = "Couldn't reach the nest. Check your connection and reload."; }
+    if (me) pickMe(); else { const w = store.get("who"); if (w) { const b = $("who").querySelector(`[data-v="${w}"]`); if (b) b.click(); } }
+  }
+
+  async function refresh(){
+    const d = await call("load");
+    entries = d.entries || []; feedback = d.feedback || []; st = d.state || {}; isOwner = !!d.isOwner; me = d.me || "";
+    if (me && val.who !== me) pickMe();
+    rules =(st.rules && Array.isArray(st.rules.items)) ? st.rules.items : [];
+    store.set("nest-rules", JSON.stringify(rules)); // so the rules show instantly next time
+    renderAll();
+  }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && pass && !$("app").hidden) refresh().catch(() => {}); });
+
+  function renderAll(){ renderRules(); renderPending(); renderSugg(); renderHist(); renderLists(); renderFeedback(); renderProposal(); renderOwner(); showRemind(); drawNest(); }
+
+  // ---- Reminder switch ----
+  function showRemind(){
+    if (!val.who) { $("remindWrap").hidden = true; return; }
+    $("remindWrap").hidden = false;
+    const ls = st["logstatus_" + val.who] || {};
+    $("remindMe").checked = ls.remind !== false;
+  }
+  $("remindMe").onchange = async e => { if (!val.who) return; try { await call("setRemind", { who: val.who, remind: e.target.checked }); st["logstatus_" + val.who] = { ...(st["logstatus_" + val.who] || {}), remind: e.target.checked }; } catch(x){ e.target.checked = !e.target.checked; } };
+
+  // ---- Owner controls ----
+  $("pinForm").onsubmit = async ev => {
+    ev.preventDefault(); pin = $("pin").value.trim();
+    try { await refresh(); if (isOwner) { store.set("nest-pin", pin); $("pin").value = ""; } else { $("ownerLead").textContent = "That PIN didn't work."; pin = ""; } } catch(e){}
+  };
+  function renderOwner(){
+    // Signed in by email = pause switches open, no PIN (approved by Anirban, 30 Oct 2026). PIN form only shows without email sign-in.
+    $("ownerControls").hidden = !isOwner; $("pinForm").hidden = isOwner || !!me;
+    $("ownerLead").textContent = isOwner ? "Pause switches." : "Pause switches. Enter your owner PIN to unlock.";
+    const s = st.settings || {};
+    $("aiPaused").checked = !!s.aiPaused; $("nightPaused").checked = !!s.nightlyPaused; $("remPaused").checked = !!s.remindersPaused;
+  }
+  [["aiPaused","aiPaused"],["nightPaused","nightlyPaused"],["remPaused","remindersPaused"]].forEach(([id,key]) => {
+    $(id).onchange = async e => { try { await call("setSetting", { key, value: e.target.checked }); st.settings = { ...(st.settings||{}), [key]: e.target.checked }; } catch(x){ e.target.checked = !e.target.checked; } };
+  });
+
+  // ---- Proposal ----
+  function renderProposal(){
+    const p = st.proposal, card = $("propCard");
+    if (!p || !["pending","approved"].includes(p.status)) { card.hidden = true; return; }
+    card.hidden = false;
+    $("propSummary").textContent = p.summary || "";
+    const ul = $("propList"); ul.innerHTML = "";
+    (Array.isArray(p.changes) ? p.changes : []).forEach(c => { const li = document.createElement("li"); li.textContent = String(c); ul.append(li); });
+    const link = typeof p.previewUrl === "string" && p.previewUrl.startsWith("https://") ? p.previewUrl : "";
+    $("propPreview").hidden = !link; if (link) $("propLink").href = link;
+    // Either of us can approve or reject (approved by Anirban, 27 Oct 2026). The PIN only guards the pause switches.
+    if (p.status === "approved") { $("propActions").hidden = true; $("propStatus").textContent = "Approved. It goes live at the next run (around 1 pm or 2 am)."; }
+    else { $("propActions").hidden = false; $("propStatus").textContent = "Either of us can approve or reject."; }
+  }
+  const decide = async status => {
+    $("propYes").disabled = $("propNo").disabled = true;
+    try { await call("decide", { status }); await refresh(); }
+    catch(e){ $("propStatus").textContent = "Couldn't save your decision. Try again."; }
+    finally { $("propYes").disabled = $("propNo").disabled = false; }
+  };
+  $("propYes").onclick = () => decide("approved");
+  $("propNo").onclick = () => decide("rejected");
+
+  // ---- Feedback ----
+  const FBST = { new:"New", planned:"In the next update", done:"Done", declined:"Not doing" };
+  $("fbSave").onclick = async () => {
+    const t = $("fbText").value.trim(), s = $("fbStatus");
+    if (!t) { s.textContent = "Write something first."; return; }
+    if (!val.who) { s.textContent = "Pick who you are on the Common Journal tab first."; return; }
+    $("fbSave").disabled = true; s.textContent = "Sending…";
+    try { await call("addFeedback", { who: val.who, text: t }); $("fbText").value = ""; s.textContent = "Sent. Claude will look at it tonight."; await refresh(); }
+    catch(e){ s.textContent = "Couldn't send. Check your connection and try again."; }
+    finally { $("fbSave").disabled = false; }
+  };
+  function renderFeedback(){
+    const box = $("fbList"); box.innerHTML = "";
+    if (!feedback.length) { box.innerHTML = '<div class="empty">No notes yet.</div>'; return; }
+    feedback.forEach(f => {
+      const c = document.createElement("div"); c.className = "entry " + side(f.who);
+      const top = document.createElement("div"); top.className = "top";
+      const w = document.createElement("span"); w.className = "whoTag " + side(f.who);
+      { const fdt = new Date(f.createdAt); w.append(icon(ICON[f.who] || "leaf"), document.createTextNode((f.who || "") + " · " + (isNaN(fdt) ? "" : fdt.toLocaleDateString("en-IN",{day:"numeric",month:"short"})))); }
+      const p = document.createElement("span"); p.className = "pill"; p.textContent = FBST[f.status] || "New";
+      top.append(w, p);
+      const t = document.createElement("p"); t.textContent = f.text || "";
+      c.append(top, t);
+      if (f.reply) { const r = document.createElement("p"); const k = document.createElement("span"); k.className = "k"; k.textContent = "Claude: "; r.append(k, document.createTextNode(f.reply)); c.append(r); }
+      box.append(c);
+    });
+  }
+
+  // ---- Rules ----
+  const rid = () => Math.random().toString(36).slice(2,9);
+  async function saveRules(next){ const prev = rules; rules = next; renderRules(); try { await call("setRules", { items: next }); } catch(e){ rules = prev; renderRules(); } }
+  function renderRules(){
+    const ol = $("rulesList"); ol.innerHTML = "";
+    if (!rules.length){ ol.innerHTML = '<li class="empty">No rules yet. Add the first one below.</li>'; return; }
+    rules.forEach((r, i) => {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className="num"; n.textContent = i+1;
+      const t = document.createElement("div"); t.className="txt";
+      const p = document.createElement("div"); p.textContent = r.text;
+      const tag = document.createElement("div"); tag.className="tag";
+      tag.textContent = r.source === "suggested" ? "Grew from our log" : r.source === "starter" ? "Starter rule" : "Added by us";
+      t.append(p, tag);
+      const x = document.createElement("button"); x.className="x"; x.textContent="Remove";
+      x.onclick = () => {
+        if (x.dataset.armed) saveRules(rules.filter(q => q.id !== r.id));
+        else { x.dataset.armed = "1"; x.textContent = "Tap again to remove"; setTimeout(()=>{ x.textContent="Remove"; delete x.dataset.armed; }, 4000); }
+      };
+      li.append(n, t, x); ol.append(li);
+    });
+  }
+  // ---- New rules wait for both of us to tick all three checks ----
+  const CHECKS = ["I understand it", "I agree", "I'll follow it"];
+  const PEOPLE = ["Bindu", "Anirban"];
+  const myName = () => me || val.who || "";
+  const ruleErr = e => e && e.error === "unknown_action" ? "This needs the backend update. Ask Anirban to redeploy the Apps Script." : "Couldn't save that. Check your connection and try again.";
+  function applyRuleResult(r){
+    if (Array.isArray(r.pending)) st.pendingRules = { items: r.pending };
+    if (Array.isArray(r.rules)) { rules = r.rules; st.rules = { items: rules }; store.set("nest-rules", JSON.stringify(rules)); renderRules(); }
+    renderPending();
+  }
+  async function proposeRule(text, source, replaces){
+    if (!myName()) { $("ruleStatus").textContent = "Pick who you are on the Common Journal tab first."; throw {}; }
+    try { const r = await call("proposeRule", { text, source, replaces: replaces || "", who: myName() }); applyRuleResult(r); $("ruleStatus").textContent = "Added below. It joins the book once you both tick all three."; }
+    catch(e){ $("ruleStatus").textContent = ruleErr(e); throw e; }
+  }
+  function renderPending(){
+    const items = (st.pendingRules && Array.isArray(st.pendingRules.items)) ? st.pendingRules.items : [];
+    const box = $("pendList"); box.innerHTML = ""; $("pendCard").hidden = !items.length;
+    const byId = Object.fromEntries(rules.map(x => [x.id, x]));
+    items.forEach(it => {
+      const d = document.createElement("div"); d.className = "sitem";
+      const tg = document.createElement("span"); tg.className = "tag";
+      tg.textContent = (it.replaces && byId[it.replaces] ? "Reword: " + byId[it.replaces].text : "New rule") + (it.by ? " · suggested by " + it.by : "");
+      const t = document.createElement("div"); t.textContent = it.text;
+      d.append(tg, t);
+      PEOPLE.forEach(w => {
+        const ticks = (it.ticks && it.ticks[w]) || [];
+        const row = document.createElement("div"); row.className = "row"; row.style.gap = "6px 14px";
+        const nm = document.createElement("span"); nm.className = "whoTag " + side(w); nm.append(icon(ICON[w]), document.createTextNode(w)); row.append(nm);
+        CHECKS.forEach((c, i) => {
+          const lab = document.createElement("label"); lab.style.cssText = "margin:0;font-weight:500;display:inline-flex;gap:6px;align-items:center";
+          const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!ticks[i];
+          cb.disabled = myName() !== w; // each of us ticks only our own
+          cb.onchange = async () => {
+            cb.disabled = true;
+            try { const r = await call("ruleTick", { id: it.id, i, value: cb.checked, who: myName() }); applyRuleResult(r); if (r.agreed) $("ruleStatus").textContent = "You both agreed. It's in the rule book now."; }
+            catch(e){ cb.checked = !cb.checked; cb.disabled = false; $("ruleStatus").textContent = ruleErr(e); }
+          };
+          lab.append(cb, document.createTextNode(c)); row.append(lab);
+        });
+        d.append(row);
+      });
+      const x = document.createElement("button"); x.className = "x"; x.textContent = "Withdraw"; x.style.alignSelf = "flex-start";
+      x.onclick = async () => {
+        if (!x.dataset.armed) { x.dataset.armed = "1"; x.textContent = "Tap again to withdraw"; setTimeout(() => { x.textContent = "Withdraw"; delete x.dataset.armed; }, 4000); return; }
+        try { applyRuleResult(await call("dropRule", { id: it.id })); } catch(e){ $("ruleStatus").textContent = ruleErr(e); }
+      };
+      d.append(x); box.append(d);
+    });
+  }
+  $("addRule").onclick = async () => {
+    const v = $("newRule").value.trim(); if (!v) return;
+    try { await proposeRule(v, "manual"); $("newRule").value = ""; } catch(e){}
+  };
+
+  // ---- Rule suggestions (written nightly by Claude into the Sheet) ----
+  function renderSugg(){
+    const out = $("sugg"), r = st.suggestions;
+    if ((st.settings || {}).aiPaused) { out.innerHTML = '<p class="status">Suggestions are paused.</p>'; return; }
+    if (!r || !r.createdAt) return;
+    out.innerHTML = "";
+    const dismissed = new Set(r.dismissed || []);
+    const when = document.createElement("span"); when.className = "tag"; { const wdt = new Date(r.createdAt); when.textContent = "From the night of " + (isNaN(wdt) ? "" : wdt.toLocaleDateString("en-IN",{day:"numeric",month:"short"})); } out.append(when);
+    if (r.safety){ const n = document.createElement("div"); n.className="notice"; n.textContent = "Some of these pages sound like things got really hard. You're family — it's okay to lean on someone you both trust, and to ask for outside support if you need it."; out.append(n); }
+    if (r.summary){ const p = document.createElement("p"); p.style.margin="0"; p.textContent = r.summary; out.append(p); }
+    if (Array.isArray(r.patterns) && r.patterns.length){ const ul = document.createElement("ul"); ul.style.margin="0"; ul.style.paddingLeft="18px"; r.patterns.forEach(t => { const li = document.createElement("li"); li.textContent = String(t); ul.append(li); }); out.append(ul); }
+    const byId = Object.fromEntries(rules.map(x => [x.id, x]));
+    const item = (key, label, text, why, act) => {
+      if (dismissed.has(key)) return;
+      const d = document.createElement("div"); d.className="sitem";
+      const tg = document.createElement("span"); tg.className="tag"; tg.textContent = label;
+      const t = document.createElement("div"); t.textContent = text;
+      const w = document.createElement("div"); w.className="why"; w.textContent = why || "";
+      const row = document.createElement("div"); row.className="row";
+      const a = document.createElement("button"); a.className="btn small"; a.textContent="Accept";
+      const s = document.createElement("button"); s.className="btn small ghost"; s.textContent="Skip";
+      const done = async () => { d.remove(); r.dismissed = [...(r.dismissed||[]), key]; call("dismissSuggestion", { key }).catch(() => {}); };
+      a.onclick = async () => { a.disabled = s.disabled = true; try { await act(); done(); } catch(e){ a.disabled = s.disabled = false; } };
+      s.onclick = done;
+      row.append(a, s); d.append(tg, t, w, row); out.append(d);
+    };
+    // Accepting a new or reworded rule sends it to "Waiting for both of us"; it joins the book after both tick all three.
+    (r.add||[]).forEach((x,i) => x && x.text && item("add"+i, "New rule", String(x.text), String(x.why||""), () => proposeRule(String(x.text), "suggested")));
+    (r.revise||[]).forEach((x,i) => x && byId[x.id] && x.text && item("rev"+i, "Reword: " + byId[x.id].text, String(x.text), String(x.why||""), () => proposeRule(String(x.text), "suggested", x.id)));
+    (r.retire||[]).forEach((x,i) => x && byId[x.id] && item("ret"+i, "Retire", byId[x.id].text, String(x.why||""), () => saveRules(rules.filter(q => q.id!==x.id))));
+    if (!out.querySelector(".sitem")){ const p = document.createElement("p"); p.className="status"; p.textContent = "Nothing left to decide. New suggestions come overnight."; out.append(p); }
+  }
+
+  // ---- Screenshot (shrunk on the phone, sent with the page) ----
+  let shot = null;
+  $("shotFile").onchange = ev => {
+    const file = ev.target.files && ev.target.files[0]; ev.target.value = ""; if (!file) return;
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, 1400 / Math.max(img.width, img.height));
+      const c = document.createElement("canvas"); c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      shot = { base64: c.toDataURL("image/jpeg", 0.85).split(",")[1] };
+      URL.revokeObjectURL(img.src);
+      $("shotStatus").textContent = "Screenshot added. It's sent with your page.";
+    };
+    img.onerror = () => { $("shotStatus").textContent = "That image couldn't be opened. Try a PNG or JPEG screenshot."; };
+    img.src = URL.createObjectURL(file);
+  };
+
+  // ---- Save page ----
+  $("save").onclick = async () => {
+    const s = $("saveStatus");
+    if (!val.who) { s.textContent = "Pick who's writing first."; return; }
+    if (!val.mood) { s.textContent = "Pick today's weather."; return; }
+    if (!val.fight) { s.textContent = "Say whether there was a fight today."; return; }
+    const none = val.fight === "none";
+    const e = { date: logDate(), who: val.who, mood: Number(val.mood), fight: val.fight,
+      trigger: none ? "" : $("f-trigger").value.trim(), felt: none ? "" : $("f-felt").value.trim(),
+      needed: none ? "" : $("f-needed").value.trim(), change: none ? "" : $("f-change").value.trim(),
+      pauseUsed: none ? "" : (val.pause || ""), appreciation: $("f-appr").value.trim(), other: $("f-other").value.trim(), shot };
+    if (editingId){
+      const fields = Object.assign({}, e, { id: editingId }); delete fields.date; delete fields.shot;
+      $("save").disabled = true; s.textContent = "Saving changes…";
+      try {
+        await call("updateEntry", fields);
+        s.textContent = "Page updated.";
+        stopEdit();
+        await refresh();
+      } catch(err){
+        s.textContent = err.error === "not_yours" ? "That page isn't yours to change."
+          : err.error === "unknown_action" ? "Editing needs the latest backend. Ask Anirban to redeploy the Apps Script. Your writing is still here."
+          : err.error === "not_found" ? "Couldn't find that page any more. Reload and try again."
+          : "Couldn't save. Check your connection and try again. Your writing is still here.";
+      }
+      finally { $("save").disabled = false; }
+      return;
+    }
+    $("save").disabled = true; s.textContent = "Saving…";
+    try {
+      await call("addEntry", e);
+      s.textContent = shot ? "Twig added. Claude will read your screenshot tonight." : "Twig added. Thank you for writing it down.";
+      const sp = $("sticker"); sp.innerHTML = ""; const b = document.createElement("span"); b.className = "sticker"; b.style.color = `var(--${side(val.who)})`; b.append(icon(ICON[val.who])); sp.append(b);
+      ["f-trigger","f-felt","f-needed","f-change","f-appr","f-other"].forEach(id => $(id).value = "");
+      shot = null; $("shotStatus").textContent = "";
+      await refresh();
+    } catch(err){ s.textContent = "Couldn't save. Check your connection and try again. Your writing is still here."; }
+    finally { $("save").disabled = false; }
+  };
+
+  // ---- Editing your own earlier pages ----
+  let editingId = null;
+  function setSeg(id, v){ const b = $(id).querySelector(`[data-v="${v}"]`); if (b) b.click(); }
+  function startEdit(e){
+    editingId = e.id;
+    setSeg("mood", e.mood);
+    setSeg("fight", e.fight || "none");
+    if (e.pauseUsed) setSeg("pause", e.pauseUsed);
+    $("f-trigger").value = e.trigger || ""; $("f-felt").value = e.felt || "";
+    $("f-needed").value = e.needed || ""; $("f-change").value = e.change || "";
+    $("f-appr").value = e.appreciation || ""; $("f-other").value = e.other || "";
+    $("save").textContent = "Save changes";
+    $("cancelEdit").hidden = false;
+    $("saveStatus").textContent = "Editing your page from " + e.date + ".";
+    document.querySelector('.tab[data-p="p-today"]').click();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function stopEdit(){
+    editingId = null;
+    $("save").textContent = "Add my twig to the nest";
+    $("cancelEdit").hidden = true;
+    ["f-trigger","f-felt","f-needed","f-change","f-appr","f-other"].forEach(id => $(id).value = "");
+  }
+  $("cancelEdit").onclick = () => { stopEdit(); $("saveStatus").textContent = "Edit cancelled."; };
+
+  // ---- Log ----
+  function renderHist(){
+    const box = $("hist"); box.innerHTML = "";
+    if (!entries.length){ box.innerHTML = '<div class="empty"><svg class="d"><use href="#bird"/></svg>No pages yet. Write tonight\'s on the first tab.</div>'; $("trendCard").hidden = true; return; }
+    const byDay = {};
+    entries.forEach(e => (byDay[e.date] ||= []).push(e));
+    const days = Object.keys(byDay).sort();
+    days.slice().reverse().forEach(d => {
+      const sec = document.createElement("div"); sec.className="day";
+      const h = document.createElement("h3");
+      { const dt = new Date(d+"T00:00"); h.textContent = isNaN(dt) ? d : dt.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"}); }
+      const sm = document.createElement("small"); sm.textContent = "Page " + (days.indexOf(d)+1); h.append(sm);
+      sec.append(h);
+      byDay[d].forEach(e => {
+        const c = document.createElement("div"); c.className="entry " + side(e.who);
+        const top = document.createElement("div"); top.className="top";
+        const w = document.createElement("span"); w.className = "whoTag " + side(e.who); w.append(icon(ICON[e.who] || "leaf"), document.createTextNode(e.who || ""));
+        const pills = document.createElement("span"); pills.className="row"; pills.style.gap = "6px";
+        const p1 = document.createElement("span"); p1.className="pill"; p1.textContent = MOOD[e.mood] || ""; pills.append(p1);
+        if (e.fight && e.fight !== "none"){ const p2 = document.createElement("span"); p2.className = "pill" + (e.fight==="big"?" big":""); p2.textContent = e.fight==="big"?"Big fight":"Small bump"; pills.append(p2); }
+        top.append(w, pills); c.append(top);
+        c.classList.add("framed");
+        const em = document.createElement("p"); em.className = "k"; em.style.margin = "0"; em.textContent = (MOODEM[e.mood] || "") + " " + (MOOD[e.mood] || "");
+        c.append(em);
+        [["🔥","What set it off","trigger"],["💭","Felt","felt"],["🤲","Needed","needed"],["🌱","Would do differently","change"],["💛","Loved","appreciation"],["📝","Also","other"],["📸",e.contextApp ? "From " + e.contextApp : "From my apps","context"]].forEach(([emo,k,f]) => {
+          if (!e[f]) return;
+          const wrap = document.createElement("div"); wrap.style.display = "flex"; wrap.style.flexDirection = "column"; wrap.style.gap = "2px";
+          const s = document.createElement("span"); s.className = "k"; s.textContent = emo + " " + k;
+          wrap.append(s); paragraphs(wrap, e[f]); c.append(wrap);
+        });
+        if (e.who === val.who){
+          const eb = document.createElement("button"); eb.type = "button"; eb.textContent = "Edit this page";
+          eb.style.cssText = "font:inherit;font-size:13px;align-self:flex-start;padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer";
+          eb.onclick = () => startEdit(e);
+          c.append(eb);
+        }
+        if (e.shotPending && !e.context){ const p = document.createElement("p"); p.className = "k"; p.textContent = "Screenshot waiting to be read tonight."; c.append(p); }
+        sec.append(c);
+      });
+      box.append(sec);
+    });
+    const strip = $("strip"); strip.innerHTML = ""; let any = false;
+    for (let i = 13; i >= 0; i--){
+      const d = new Date(); d.setDate(d.getDate()-i); const k = d.toLocaleDateString("en-CA");
+      const list = byDay[k] || []; const avg = list.length ? list.reduce((a,b)=>a+(Number(b.mood)||0),0)/list.length : 0;
+      if (avg) any = true;
+      const sp = document.createElement("span"); sp.style.height = avg ? (avg/5*100)+"%" : "3px";
+      if (!avg) sp.style.opacity = ".2";
+      sp.title = k + (avg ? " · " + avg.toFixed(1) + "/5" : " · no page");
+      strip.append(sp);
+    }
+    $("trendCard").hidden = !any;
+  }
+
+  // ---- Shared to-do and shopping lists ----
+  const listState = { todos: [], shopping: [] };
+  const LIST_UL = { todos: "todoList", shopping: "shopList" };
+  function renderLists(){
+    listState.todos = (st.todos && Array.isArray(st.todos.items)) ? st.todos.items : [];
+    listState.shopping = (st.shopping && Array.isArray(st.shopping.items)) ? st.shopping.items : [];
+    renderList("todos"); renderList("shopping");
+  }
+  function renderList(key){
+    const ul = $(LIST_UL[key]); ul.innerHTML = "";
+    const items = listState[key];
+    if (!items.length){ ul.innerHTML = '<li class="empty">Nothing here yet.</li>'; return; }
+    items.forEach(it => {
+      const li = document.createElement("li");
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!it.done; cb.setAttribute("aria-label", "Done"); cb.style.marginTop = "6px";
+      cb.onchange = () => { it.done = cb.checked; listOp(key, { op: "toggle", id: it.id, done: cb.checked }); };
+      const t = document.createElement("div"); t.className = "txt"; t.textContent = it.text;
+      if (it.done){ t.style.textDecoration = "line-through"; t.style.opacity = ".6"; }
+      if (it.by){ const tag = document.createElement("div"); tag.className = "tag"; tag.textContent = "Added by " + it.by; t.append(tag); }
+      const x = document.createElement("button"); x.className = "x"; x.textContent = "Remove";
+      x.onclick = () => { listState[key] = listState[key].filter(q => q.id !== it.id); listOp(key, { op: "remove", id: it.id }); };
+      li.append(cb, t, x); ul.append(li);
+    });
+  }
+  async function saveList(key){
+    renderList(key);
+    try { await call("saveList", { key, items: listState[key] }); $("listStatus").textContent = ""; }
+    catch(e){ $("listStatus").textContent = "Couldn't save that list. Check your connection and try again."; }
+  }
+  // Each change is sent on its own and applied to the latest saved list, so the two phones never overwrite each other.
+  // Falls back to the old whole-list save until the backend is redeployed.
+  async function listOp(key, op){
+    renderList(key);
+    try {
+      const r = await call("listOp", Object.assign({ key }, op));
+      listState[key] = Array.isArray(r.items) ? r.items : listState[key];
+      st[key] = { items: listState[key] }; renderList(key); $("listStatus").textContent = "";
+    } catch(e){
+      if (e && e.error === "unknown_action") return saveList(key);
+      $("listStatus").textContent = "Couldn't save that list. Check your connection and try again.";
+    }
+  }
+  const addTo = (key, inputId) => () => {
+    const v = $(inputId).value.trim(); if (!v) return;
+    const it = { id: rid(), text: v, done: false, by: me || val.who || "" };
+    listState[key] = [...listState[key], it];
+    $(inputId).value = ""; listOp(key, { op: "add", id: it.id, text: v, by: it.by });
+  };
+  // While the lists are open, pick up the other phone's changes every 20 seconds.
+  setInterval(() => { if (pass && !document.hidden && !$("p-lists").hidden) refresh().catch(() => {}); }, 20000);
+  $("todoAdd").onclick = addTo("todos", "todoNew");
+  $("shopAdd").onclick = addTo("shopping", "shopNew");
+  $("todoNew").onkeydown = e => { if (e.key === "Enter") $("todoAdd").click(); };
+  $("shopNew").onkeydown = e => { if (e.key === "Enter") $("shopAdd").click(); };
+
+  // ---- Private journal: opened only with each person's own password (kept in memory, never saved on the phone) ----
+  let jWho = "", jPass = "";
+  const jBody = () => $("jBody"), jEntries = () => $("jEntries");
+  $("jWho").querySelectorAll("button").forEach(b => b.onclick = () => {
+    $("jWho").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    jWho = b.dataset.v; $("jStatus").textContent = "";
+  });
+  function jShowOpen(){
+    $("jGate").hidden = false; jBody().hidden = true; jPass = ""; $("jPass").value = ""; $("jOld").value = ""; $("jNewWrap").hidden = true; jEntries().innerHTML = "";
+  }
+  function renderJournal(list){
+    const box = jEntries(); box.innerHTML = "";
+    if (!list.length){ box.innerHTML = '<p class="status">No entries yet. Write the first one above.</p>'; return; }
+    list.forEach(e => {
+      const c = document.createElement("div"); c.className = "entry framed " + side(jWho);
+      const d = document.createElement("span"); d.className = "tag";
+      { const dt = new Date(e.date + "T00:00"); d.textContent = isNaN(dt) ? (e.date || "") : dt.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }); }
+      c.append(d); paragraphs(c, e.text); box.append(c);
+    });
+  }
+  async function jLoad(){
+    const r = await call("journalLoad", { who: jWho, password: jPass });
+    $("jGate").hidden = true; jBody().hidden = false; $("jTitle").textContent = jWho + "'s journal";
+    renderJournal(r.entries || []);
+  }
+  $("jForm").onsubmit = async ev => {
+    ev.preventDefault();
+    if (!jWho){ $("jStatus").textContent = "Pick whose journal it is first."; return; }
+    jPass = $("jPass").value;
+    $("jStatus").textContent = "Opening…";
+    try { await jLoad(); $("jStatus").textContent = ""; }
+    catch(e){ jPass = ""; $("jStatus").textContent = e.error === "wrong_password" ? "That password didn't match." : "Couldn't open the journal. Check your connection."; }
+  };
+  $("jSet").onclick = async () => {
+    if (!jWho){ $("jStatus").textContent = "Pick whose journal it is first."; return; }
+    if ($("jNewWrap").hidden){ $("jNewWrap").hidden = false; $("jStatus").textContent = "If you already have a password, enter it as the current one. Then press Set again."; return; }
+    const pw = $("jPass").value;
+    try { await call("setJournalPass", { who: jWho, password: pw, oldPassword: $("jOld").value }); $("jNewWrap").hidden = true; $("jOld").value = ""; $("jStatus").textContent = "Password saved. Open your journal with it."; }
+    catch(e){ $("jStatus").textContent = e.error === "password_too_short" ? "Use at least 6 characters." : e.error === "wrong_password" ? "The current password didn't match." : "Couldn't save the password. Try again."; }
+  };
+  $("jSave").onclick = async () => {
+    const t = $("jText").value.trim(), s = $("jSaveStatus");
+    if (!t){ s.textContent = "Write something first."; return; }
+    $("jSave").disabled = true; s.textContent = "Saving…";
+    try { await call("journalAdd", { who: jWho, password: jPass, text: t }); $("jText").value = ""; s.textContent = "Added."; await jLoad(); }
+    catch(e){ s.textContent = "Couldn't save. Your writing is still here."; }
+    finally { $("jSave").disabled = false; }
+  };
+  $("jLock").onclick = () => jShowOpen();
+
+  // ---- Helpers for the scrapbook look ----
+  function paragraphs(parent, text){
+    String(text || "").split(/\n\s*\n|\n/).map(s => s.trim()).filter(Boolean).forEach(line => {
+      const p = document.createElement("p"); p.style.margin = "0 0 6px"; p.textContent = line; parent.append(p);
+    });
+  }
+
+  // ---- Nest ----
+  function rnd(seed){ let s = seed * 9301 + 49297; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
+  function drawNest(){
+    const c = $("nest"), ctx = c.getContext("2d"), W = c.width, H = c.height, col = resolveColor;
+    ctx.clearRect(0,0,W,H); ctx.lineCap = "round";
+    const cx = W/2, cy = H*0.56, rx = W*0.36, ry = H*0.26;
+    ctx.strokeStyle = col("--line"); ctx.lineWidth = 3; ctx.setLineDash([6,7]);
+    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0.05*Math.PI, 0.95*Math.PI); ctx.stroke(); ctx.setLineDash([]);
+    const list = [...entries].reverse();
+    const eggs = Math.min(3, Math.floor(list.length / 14));
+    for (let i = 0; i < eggs; i++){ ctx.fillStyle = col("--egg"); ctx.strokeStyle = col("--twig"); ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx - 30 + i*30, cy - 6, 15, 20, (i-1)*0.25, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
+    list.forEach((e, i) => {
+      const r = rnd(i + 7), t = 0.08 + r()*0.84, band = 0.75 + r()*0.45;
+      const a = Math.PI * t, x = cx + Math.cos(a)*rx*band, y = cy + Math.sin(a)*ry*band - r()*6;
+      const len = 26 + r()*28, ang = (r()-0.5)*0.9;
+      ctx.strokeStyle = i % 3 === 2 ? col("--twig") : col(e.who === "Bindu" ? "--her" : "--his");
+      ctx.lineWidth = 2.2 + r()*1.4;
+      ctx.beginPath(); ctx.moveTo(x - Math.cos(ang)*len/2, y - Math.sin(ang)*len/2); ctx.quadraticCurveTo(x, y - 8 + r()*16, x + Math.cos(ang)*len/2, y + Math.sin(ang)*len/2); ctx.stroke();
+    });
+    const n = list.length;
+    $("nestCap").textContent = n ? `${n} twig${n===1?"":"s"} so far${eggs ? " · " + eggs + " egg" + (eggs>1?"s":"") : ""}` : "Our nest starts with the first check-in";
+  }
+  drawNest();
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawNest); } catch(e){}
+
+  boot();
+
+  // ---- Daily healing word ----
+  (function(){
+    const words = [
+      "You don't have to be perfect. You just have to keep showing up for each other.",
+      "A home is not a place. It's the feeling of being truly known by someone.",
+      "Some days love is a grand gesture. Most days it's just choosing to be gentle.",
+      "You are allowed to grow. You are allowed to change. You are still the same people who chose each other.",
+      "Rest is not giving up. Sometimes the most loving thing is to pause and breathe.",
+      "The small things — a glance, a cup of tea, a hand on the back — they are not small at all.",
+      "You will not always get it right. That's not the goal. Coming back is.",
+      "Two people, one direction. That's enough.",
+      "Your nervous system remembers safety. Keep building it together.",
+      "It's okay to need each other. That's not weakness. That's the whole point.",
+      "There is no finish line in love. Just the long, beautiful walk.",
+      "On the hard days, remember: you are each other's soft place to land.",
+      "Growth doesn't always look like progress. Sometimes it looks like stillness and trust.",
+      "The love you give each other today is quietly shaping who you'll be tomorrow.",
+      "You don't need to fix everything. Sometimes you just need to sit beside each other in it.",
+      "Being seen by someone — really seen — is one of the rarest gifts on earth. You have that.",
+      "Patience is not passive. It is active, steady, daily love.",
+      "The nest is not built in a day. Every twig counts.",
+      "When you choose kindness over being right, the whole room gets lighter.",
+      "You carry each other's stories. Hold them gently.",
+      "Not every silence is distance. Some silences are just two people breathing easy.",
+      "A relationship that grows together doesn't need to compare itself to anything.",
+      "Your love is not a performance. It lives in the ordinary, the quiet, the in-between.",
+      "Healing is not linear. Some weeks you go backwards. That's still moving.",
+      "You are both doing better than you think.",
+      "The version of you that shows up today — tired, imperfect, trying — is enough.",
+      "Every evening you write here is an act of care. Keep going.",
+      "There is so much tenderness in two people deciding to understand each other.",
+      "You don't need to earn rest. You don't need to earn peace. You don't need to earn each other.",
+      "Trust is built in the smallest moments. You are building it every day.",
+      "Whatever today held — you made it through. That matters.",
+      "The life you're building doesn't need to look like anyone else's.",
+      "Love that has been honest is stronger than love that has only been easy.",
+      "You are each other's home. Take care of it.",
+      "Some feelings just need to be felt, not fixed. Be with each other in them.",
+      "The fact that you still try — that is everything.",
+      "A good life is made of good days. And good days are made of moments like this one."
+    ];
+    const n = new Date();
+    const dayIndex = Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / 864e5);
+    const word = words[dayIndex % words.length];
+    const el = document.getElementById("dailyWord");
+    if (el) el.textContent = word;
+  })();
+})();
+</script>
+</body>
+</html>
