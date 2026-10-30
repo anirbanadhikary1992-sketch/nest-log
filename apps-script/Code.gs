@@ -58,9 +58,13 @@ function doPost(e) {
     me = signin.emails[String(req.email || "").trim().toLowerCase()] || "";
     if (WHO.indexOf(me) < 0) return json_({ error: "wrong_email" });
   }
-  // Owner controls are open to both of us: OWNER_PIN (Anirban) or BINDU_PIN (Bindu). Both are script properties.
-  const isOwner = !!req.ownerPin && (req.ownerPin === props.getProperty("OWNER_PIN") || req.ownerPin === props.getProperty("BINDU_PIN"));
+  // Pause switches: open to whoever is signed in with their email (approved by Anirban, 30 Oct 2026).
+  // OWNER_PIN / BINDU_PIN only matter as a fallback when there is no "signin" row.
+  const isOwner = WHO.indexOf(me) >= 0 ||
+    (!!req.ownerPin && (req.ownerPin === props.getProperty("OWNER_PIN") || req.ownerPin === props.getProperty("BINDU_PIN")));
   const d = req.data || {};
+  // The signed-in person always writes, edits and journals as themselves; the app's "who" is ignored.
+  if (WHO.indexOf(me) >= 0) d.who = me;
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
@@ -90,7 +94,7 @@ function doPost(e) {
         return json_({ ok: true });
       case "decide":
         // Approve / Reject is open to anyone signed in with the passcode (approved by Anirban, 27 Oct 2026).
-        // The owner PIN still guards the pause switches above.
+        // The pause switches above need a signed-in email (or an owner PIN when there is no "signin" row).
         if (["approved", "rejected"].indexOf(d.status) < 0) return json_({ error: "bad_request" });
         const p = getState_("proposal");
         if (!p || p.status !== "pending") return json_({ error: "nothing_pending" });
@@ -131,7 +135,7 @@ function addEntry_(d, props) {
 }
 
 // Edits one Entries row. Only the writer named in d.who can edit a row they wrote.
-// Passcode check in doPost() and owner PIN / BINDU_PIN logic are unchanged.
+// When signed in by email, doPost() sets d.who to the signed-in person, so nobody can edit the other's page.
 function updateEntry_(d) {
   if (WHO.indexOf(d.who) < 0) return { error: "bad_request" };
   const sh = SpreadsheetApp.getActive().getSheetByName("Entries");

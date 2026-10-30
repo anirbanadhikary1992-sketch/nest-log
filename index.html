@@ -224,7 +224,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
   <section class="panel" id="p-today" role="tabpanel">
     <div class="card">
       <div>
-        <span class="lbl">Who's writing tonight?</span>
+        <span class="lbl" id="whoLbl">Who's writing tonight?</span>
         <div class="who seg" id="who">
           <button type="button" data-v="Bindu"><svg class="d"><use href="#duck"/></svg><span>Bindu</span></button>
           <button type="button" data-v="Anirban"><svg class="d"><use href="#motorbike"/></svg><span>Anirban</span></button>
@@ -355,7 +355,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
       <div id="fbList" style="display:flex;flex-direction:column;gap:10px"><div class="empty">No notes yet.</div></div>
     </div>
     <div class="card">
-      <div><h2>Controls</h2><p class="lead" id="ownerLead">Pause switches. Enter your owner PIN to unlock.</p></div>
+      <div><h2>Controls</h2><p class="lead" id="ownerLead">Pause switches.</p></div>
       <form id="pinForm" class="row">
         <input type="password" id="pin" autocomplete="off" placeholder="Owner PIN" style="flex:1;min-width:0">
         <button class="btn small" type="submit">Unlock</button>
@@ -444,7 +444,15 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
   };
   $("forget").onclick = () => { store.set("nest-pass", null); store.set("nest-pin", null); store.set("nest-email", null); location.reload(); };
   // The signed-in person writes as themselves by default.
-  function pickMe(){ if (me && !store.get("who")) { const b = $("who").querySelector(`[data-v="${me}"]`); if (b) b.click(); } }
+  // Signed in by email: you always write as yourself, so the name pickers are hidden (feedback 30 Oct 2026).
+  function pickMe(){
+    if (!me) return;
+    store.set("who", me);
+    const b = $("who").querySelector(`[data-v="${me}"]`); if (b) b.click();
+    const j = $("jWho").querySelector(`[data-v="${me}"]`); if (j) j.click();
+    $("who").hidden = true; $("jWho").hidden = true;
+    $("whoLbl").textContent = "Writing as " + me;
+  }
   $("email").value = email;
 
   async function boot(){
@@ -456,12 +464,13 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
       if (e.error === "wrong_passcode") store.set("nest-pass", null);
       else if (e.error === "wrong_email") $("gateStatus").textContent = "Sign in with your email to continue.";
       else $("gateStatus").textContent = "Couldn't reach the nest. Check your connection and reload."; }
-    const w = store.get("who"); if (w) { const b = $("who").querySelector(`[data-v="${w}"]`); if (b) b.click(); } else pickMe();
+    if (me) pickMe(); else { const w = store.get("who"); if (w) { const b = $("who").querySelector(`[data-v="${w}"]`); if (b) b.click(); } }
   }
 
   async function refresh(){
     const d = await call("load");
     entries = d.entries || []; feedback = d.feedback || []; st = d.state || {}; isOwner = !!d.isOwner; me = d.me || "";
+    if (me && val.who !== me) pickMe();
     rules =(st.rules && Array.isArray(st.rules.items)) ? st.rules.items : [];
     store.set("nest-rules", JSON.stringify(rules)); // so the rules show instantly next time
     renderAll();
@@ -485,8 +494,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     try { await refresh(); if (isOwner) { store.set("nest-pin", pin); $("pin").value = ""; } else { $("ownerLead").textContent = "That PIN didn't work."; pin = ""; } } catch(e){}
   };
   function renderOwner(){
-    $("ownerControls").hidden = !isOwner; $("pinForm").hidden = isOwner;
-    $("ownerLead").textContent = isOwner ? "Unlocked on this phone." : "Pause switches. Enter your owner PIN to unlock.";
+    // Signed in by email = pause switches open, no PIN (approved by Anirban, 30 Oct 2026). PIN form only shows without email sign-in.
+    $("ownerControls").hidden = !isOwner; $("pinForm").hidden = isOwner || !!me;
+    $("ownerLead").textContent = isOwner ? "Pause switches." : "Pause switches. Enter your owner PIN to unlock.";
     const s = st.settings || {};
     $("aiPaused").checked = !!s.aiPaused; $("nightPaused").checked = !!s.nightlyPaused; $("remPaused").checked = !!s.remindersPaused;
   }
@@ -691,7 +701,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
         s.textContent = "Page updated.";
         stopEdit();
         await refresh();
-      } catch(err){ s.textContent = err.error === "not_yours" ? "That page isn't yours to change." : "Couldn't save. Check your connection and try again. Your writing is still here."; }
+      } catch(err){
+        s.textContent = err.error === "not_yours" ? "That page isn't yours to change."
+          : err.error === "unknown_action" ? "Editing needs the latest backend. Ask Anirban to redeploy the Apps Script. Your writing is still here."
+          : err.error === "not_found" ? "Couldn't find that page any more. Reload and try again."
+          : "Couldn't save. Check your connection and try again. Your writing is still here.";
+      }
       finally { $("save").disabled = false; }
       return;
     }
