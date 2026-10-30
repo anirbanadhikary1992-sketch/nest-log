@@ -211,6 +211,7 @@ footer #dailyWord{animation:fadeIn 1.8s ease both;font-style:italic;animation-de
   </section>
 
   <div id="app" hidden style="display:flex;flex-direction:column;gap:22px">
+  <div style="display:flex;justify-content:flex-end"><button class="btn ghost small" id="logout" type="button">Log out</button></div>
   <nav class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-p="p-today">Common Journal</button>
     <button class="tab" role="tab" aria-selected="false" data-p="p-rules">Our rules</button>
@@ -443,6 +444,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxYHLYzuow90rAs87SgTThR
     catch(e){ $("gateStatus").textContent = e.error === "wrong_passcode" ? "That passcode didn't work." : e.error === "wrong_email" ? "That email isn't one of ours." : "Couldn't reach the nest. Check your connection."; pass = ""; }
   };
   $("forget").onclick = () => { store.set("nest-pass", null); store.set("nest-pin", null); store.set("nest-email", null); location.reload(); };
+  // Log out: same as "Sign out of this phone", with a confirm so nobody signs out by accident.
+  $("logout").onclick = () => { if (confirm("Log out of The Nest on this phone?")) $("forget").onclick(); };
   // The signed-in person writes as themselves by default.
   // Signed in by email: you always write as yourself, so the name pickers are hidden (feedback 30 Oct 2026).
   function pickMe(){
